@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using GitHub.Runner.Common.Util;
@@ -91,6 +91,7 @@ namespace GitHub.Runner.Worker.Container
         public string RegistryAuthUsername { get; set; }
         public string RegistryAuthPassword { get; set; }
         public bool IsJobContainer { get; set; }
+        public string UserName { get; set; }
 
         public IDictionary<string, string> ContainerEnvironmentVariables
         {

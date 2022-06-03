@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -189,6 +189,10 @@ namespace GitHub.Runner.Worker.Handlers
                 // e.g. -e MY_SECRET maps the value into the exec'ed process without exposing
                 // the value directly in the command
                 dockerCommandArgs.Add($"-e {env.Key}");
+            }
+            if (!string.IsNullOrEmpty(Container.UserName))
+            {
+                dockerCommandArgs.Add($"-u {Container.UserName}");
             }
             if (!string.IsNullOrEmpty(PrependPath))
             {
