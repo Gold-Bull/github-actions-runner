@@ -50,6 +50,7 @@ elif [[ "$CURRENT_PLATFORM" == 'linux' ]]; then
         case $CPU_NAME in
             armv7l) RUNTIME_ID="linux-arm";;
             aarch64) RUNTIME_ID="linux-arm64";;
+            s390x) RUNTIME_ID="linux-s390x";;
         esac
     fi
 elif [[ "$CURRENT_PLATFORM" == 'darwin' ]]; then
@@ -70,7 +71,7 @@ if [[ "$CURRENT_PLATFORM" == 'windows' ]]; then
         exit 1
     fi
 elif [[ "$CURRENT_PLATFORM" == 'linux' ]]; then
-    if [[ ("$RUNTIME_ID" != 'linux-x64') && ("$RUNTIME_ID" != 'linux-x86') && ("$RUNTIME_ID" != 'linux-arm64') && ("$RUNTIME_ID" != 'linux-arm') ]]; then
+    if [[ ("$RUNTIME_ID" != 'linux-x64') && ("$RUNTIME_ID" != 'linux-x86') && ("$RUNTIME_ID" != 'linux-arm64') && ("$RUNTIME_ID" != 'linux-arm') && ("$RUNTIME_ID" != 'linux-s390x') ]]; then
        echo "Failed: Can't build $RUNTIME_ID package $CURRENT_PLATFORM" >&2
        exit 1
     fi
@@ -285,33 +286,35 @@ function package ()
     popd > /dev/null
 }
 
-if [[ (! -d "${DOTNETSDK_INSTALLDIR}") || (! -e "${DOTNETSDK_INSTALLDIR}/.${DOTNETSDK_VERSION}") || (! -e "${DOTNETSDK_INSTALLDIR}/dotnet") ]]; then
+if [[ "$RUNTIME_ID" != 'linux-s390x' ]]; then
+    if [[ (! -d "${DOTNETSDK_INSTALLDIR}") || (! -e "${DOTNETSDK_INSTALLDIR}/.${DOTNETSDK_VERSION}") || (! -e "${DOTNETSDK_INSTALLDIR}/dotnet") ]]; then
+        
+        # Download dotnet SDK to ../_dotnetsdk directory
+        heading "Ensure Dotnet SDK"
     
-    # Download dotnet SDK to ../_dotnetsdk directory
-    heading "Ensure Dotnet SDK"
-
-    # _dotnetsdk
-    #           \1.0.x
-    #                            \dotnet
-    #                            \.1.0.x
-    echo "Download dotnetsdk into ${DOTNETSDK_INSTALLDIR}"
-    rm -Rf "${DOTNETSDK_DIR}"
-
-    # run dotnet-install.ps1 on windows, dotnet-install.sh on linux
-    if [[ ("$CURRENT_PLATFORM" == "windows") ]]; then
-        echo "Convert ${DOTNETSDK_INSTALLDIR} to Windows style path"
-        sdkinstallwindow_path=${DOTNETSDK_INSTALLDIR:1}
-        sdkinstallwindow_path=${sdkinstallwindow_path:0:1}:${sdkinstallwindow_path:1}
-        powershell -NoLogo -Sta -NoProfile -NonInteractive -ExecutionPolicy Unrestricted -Command "& \"./Misc/dotnet-install.ps1\" -Version ${DOTNETSDK_VERSION} -InstallDir \"${sdkinstallwindow_path}\" -NoPath; exit \$LastExitCode;" || checkRC dotnet-install.ps1
-    else
-        bash ./Misc/dotnet-install.sh --version ${DOTNETSDK_VERSION} --install-dir "${DOTNETSDK_INSTALLDIR}" --no-path || checkRC dotnet-install.sh
+        # _dotnetsdk
+        #           \1.0.x
+        #                            \dotnet
+        #                            \.1.0.x
+        echo "Download dotnetsdk into ${DOTNETSDK_INSTALLDIR}"
+        rm -Rf "${DOTNETSDK_DIR}"
+    
+        # run dotnet-install.ps1 on windows, dotnet-install.sh on linux
+        if [[ ("$CURRENT_PLATFORM" == "windows") ]]; then
+            echo "Convert ${DOTNETSDK_INSTALLDIR} to Windows style path"
+            sdkinstallwindow_path=${DOTNETSDK_INSTALLDIR:1}
+            sdkinstallwindow_path=${sdkinstallwindow_path:0:1}:${sdkinstallwindow_path:1}
+            powershell -NoLogo -Sta -NoProfile -NonInteractive -ExecutionPolicy Unrestricted -Command "& \"./Misc/dotnet-install.ps1\" -Version ${DOTNETSDK_VERSION} -InstallDir \"${sdkinstallwindow_path}\" -NoPath; exit \$LastExitCode;" || checkRC dotnet-install.ps1
+        else
+            bash ./Misc/dotnet-install.sh --version ${DOTNETSDK_VERSION} --install-dir "${DOTNETSDK_INSTALLDIR}" --no-path || checkRC dotnet-install.sh
+        fi
+    
+        echo "${DOTNETSDK_VERSION}" > "${DOTNETSDK_INSTALLDIR}/.${DOTNETSDK_VERSION}"
     fi
-
-    echo "${DOTNETSDK_VERSION}" > "${DOTNETSDK_INSTALLDIR}/.${DOTNETSDK_VERSION}"
+    
+    echo "Prepend ${DOTNETSDK_INSTALLDIR} to %PATH%"
+    export PATH=${DOTNETSDK_INSTALLDIR}:$PATH
 fi
-
-echo "Prepend ${DOTNETSDK_INSTALLDIR} to %PATH%"
-export PATH=${DOTNETSDK_INSTALLDIR}:$PATH
 
 heading "Dotnet SDK Version"
 dotnet --version
