@@ -1,7 +1,7 @@
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<PropertyGroup>
 		<TargetFramework>net6.0</TargetFramework>
-		<RuntimeIdentifiers Condition=" '$(PackageRuntime)'!='rhel.8-s390x' " >win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64</RuntimeIdentifiers>
+		<RuntimeIdentifiers Condition=" '$(PackageRuntime)'!='rhel.8-s390x' " >win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64</RuntimeIdentifiers>
 		<TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
 		<PredefinedCulturesOnly>false</PredefinedCulturesOnly>
 		<PublishReadyToRunComposite>true</PublishReadyToRunComposite>
@@ -33,9 +33,12 @@
 		<DefineConstants>$(DefineConstants);X86</DefineConstants>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(BUILD_OS)' == 'OSX'">
-		<DefineConstants>$(DefineConstants);X64</DefineConstants>
-	</PropertyGroup>
+  <PropertyGroup Condition="'$(BUILD_OS)' == 'OSX' AND '$(PackageRuntime)' == 'osx-x64'">
+    <DefineConstants>$(DefineConstants);X64</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(BUILD_OS)' == 'OSX' AND '$(PackageRuntime)' == 'osx-arm64'">
+    <DefineConstants>$(DefineConstants);ARM64</DefineConstants>
+  </PropertyGroup>
 
 	<PropertyGroup Condition="'$(BUILD_OS)' == 'Linux' AND ('$(PackageRuntime)' == 'linux-x64' OR '$(PackageRuntime)' == '')">
 		<DefineConstants>$(DefineConstants);X64</DefineConstants>
@@ -46,7 +49,7 @@
 	<PropertyGroup Condition="'$(BUILD_OS)' == 'Linux' AND '$(PackageRuntime)' == 'linux-arm64'">
 		<DefineConstants>$(DefineConstants);ARM64</DefineConstants>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(BUILD_OS)' == 'Linux' AND '$(PackageRuntime)' == 'rhel.8-s390x'">
+	<PropertyGroup Condition="'$(BUILD_OS)' == 'Linux' AND $(PackageRuntime.EndsWith('-s390x')) ">
 		<DefineConstants>$(DefineConstants);S390X</DefineConstants>
 	</PropertyGroup>
 

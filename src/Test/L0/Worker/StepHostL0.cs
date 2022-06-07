@@ -7,6 +7,9 @@ using Xunit;
 using GitHub.Runner.Worker;
 using GitHub.Runner.Worker.Handlers;
 using GitHub.Runner.Worker.Container;
+using GitHub.DistributedTask.Pipelines.ContextData;
+using System.Linq;
+using GitHub.DistributedTask.Pipelines;
 
 namespace GitHub.Runner.Common.Tests.Worker
 {
@@ -29,6 +32,7 @@ namespace GitHub.Runner.Common.Tests.Worker
             return hc;
         }
 
+#if OS_LINUX
         [Fact]
         [Trait("Level", "L0")]
         [Trait("Category", "Worker")]
@@ -105,5 +109,6 @@ namespace GitHub.Runner.Common.Tests.Worker
                 Assert.Equal("node16", nodeVersion);
             }
         }
+#endif
     }
 }

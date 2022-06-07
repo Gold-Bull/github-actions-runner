@@ -15,7 +15,7 @@ namespace GitHub.Runner.Worker
     {
         void InitializeFiles(IExecutionContext context, ContainerInfo container);
         void ProcessFiles(IExecutionContext context, ContainerInfo container);
-    
+
     }
 
     public sealed class FileCommandManager : RunnerService, IFileCommandManager
@@ -57,7 +57,7 @@ namespace GitHub.Runner.Worker
                 TryDeleteFile(newPath);
                 File.Create(newPath).Dispose();
 
-                var pathToSet = container != null ? container.TranslateToContainerPath(newPath) : newPath; 
+                var pathToSet = container != null ? container.TranslateToContainerPath(newPath) : newPath;
                 context.SetGitHubContext(fileCommand.ContextName, pathToSet);
             }
         }
@@ -66,7 +66,7 @@ namespace GitHub.Runner.Worker
         {
             foreach (var fileCommand in _commandExtensions)
             {
-                try 
+                try
                 {
                     fileCommand.ProcessCommand(context, Path.Combine(_fileCommandDirectory, fileCommand.FilePrefix + _fileSuffix),container);
                 }
@@ -181,6 +181,10 @@ namespace GitHub.Runner.Worker
                                 {
                                     throw new Exception($"Invalid environment variable value. Matching delimiter not found '{delimiter}'");
                                 }
+                                if (newline == null)
+                                {
+                                    throw new Exception($"Invalid environment variable value. EOF marker missing new line.");
+                                }
                                 endIndex = index - newline.Length;
                                 tempLine = ReadLine(text, ref index, out newline);
                             }
@@ -257,6 +261,74 @@ namespace GitHub.Runner.Worker
             index = lfIndex + 1; // Skip over LF
             newline = "\n";
             return text.Substring(originalIndex, lfIndex - originalIndex);
+        }
+    }
+
+    public sealed class CreateStepSummaryCommand : RunnerService, IFileCommandExtension
+    {
+        public const int AttachmentSizeLimit = 1024 * 1024;
+
+        public string ContextName => "step_summary";
+        public string FilePrefix => "step_summary_";
+
+        public Type ExtensionType => typeof(IFileCommandExtension);
+
+        public void ProcessCommand(IExecutionContext context, string filePath, ContainerInfo container)
+        {
+            if (!context.Global.Variables.GetBoolean("DistributedTask.UploadStepSummary") ?? true)
+            {
+                Trace.Info("Step Summary is disabled; skipping attachment upload");
+                return;
+            }
+
+            if (String.IsNullOrEmpty(filePath) || !File.Exists(filePath))
+            {
+                Trace.Info($"Step Summary file ({filePath}) does not exist; skipping attachment upload");
+                return;
+            }
+
+            try
+            {
+                var fileSize = new FileInfo(filePath).Length;
+                if (fileSize == 0)
+                {
+                    Trace.Info($"Step Summary file ({filePath}) is empty; skipping attachment upload");
+                    return;
+                }
+
+                if (fileSize > AttachmentSizeLimit)
+                {
+                    context.Error(String.Format(Constants.Runner.UnsupportedSummarySize, AttachmentSizeLimit / 1024, fileSize / 1024));
+                    Trace.Info($"Step Summary file ({filePath}) is too large ({fileSize} bytes); skipping attachment upload");
+
+                    return;
+                }
+
+                Trace.Verbose($"Step Summary file exists: {filePath} and has a file size of {fileSize} bytes");
+                var scrubbedFilePath = filePath + "-scrubbed";
+
+                using (var streamReader = new StreamReader(filePath))
+                using (var streamWriter = new StreamWriter(scrubbedFilePath))
+                {
+                    string line;
+                    while ((line = streamReader.ReadLine()) != null)
+                    {
+                        var maskedLine = HostContext.SecretMasker.MaskSecrets(line);
+                        streamWriter.WriteLine(maskedLine);
+                    }
+                }
+
+                var attachmentName = context.Id.ToString();
+
+                Trace.Info($"Queueing file ({filePath}) for attachment upload ({attachmentName})");
+                // Attachments must be added to the parent context (job), not the current context (step)
+                context.Root.QueueAttachFile(ChecksAttachmentType.StepSummary, attachmentName, scrubbedFilePath);
+            }
+            catch (Exception e)
+            {
+                Trace.Error($"Error while processing file ({filePath}): {e}");
+                context.Error($"Failed to create step summary using 'GITHUB_STEP_SUMMARY': {e.Message}");
+            }
         }
     }
 }

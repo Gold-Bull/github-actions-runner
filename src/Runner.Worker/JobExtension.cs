@@ -15,6 +15,7 @@ using GitHub.DistributedTask.WebApi;
 using GitHub.Runner.Common;
 using GitHub.Runner.Common.Util;
 using GitHub.Runner.Sdk;
+using GitHub.Runner.Worker;
 using Pipelines = GitHub.DistributedTask.Pipelines;
 
 namespace GitHub.Runner.Worker
@@ -56,6 +57,8 @@ namespace GitHub.Runner.Worker
 
             // Create a new timeline record for 'Set up job'
             IExecutionContext context = jobContext.CreateChild(Guid.NewGuid(), "Set up job", $"{nameof(JobExtension)}_Init", null, null, ActionRunStage.Pre);
+            context.StepTelemetry.Type = "runner";
+            context.StepTelemetry.Action = "setup_job";
 
             List<IStep> preJobSteps = new List<IStep>();
             List<IStep> jobSteps = new List<IStep>();
@@ -246,6 +249,19 @@ namespace GitHub.Runner.Worker
                     Trace.Info("Downloading actions");
                     var actionManager = HostContext.GetService<IActionManager>();
                     var prepareResult = await actionManager.PrepareActionsAsync(context, message.Steps);
+
+                    // add hook to preJobSteps
+                    var startedHookPath = Environment.GetEnvironmentVariable("ACTIONS_RUNNER_HOOK_JOB_STARTED");
+                    if (!string.IsNullOrEmpty(startedHookPath))
+                    {
+                        var hookProvider = HostContext.GetService<IJobHookProvider>();
+                        var jobHookData = new JobHookData(ActionRunStage.Pre, startedHookPath);
+                        preJobSteps.Add(new JobExtensionRunner(runAsync: hookProvider.RunHook,
+                                                                          condition: $"{PipelineTemplateConstants.Always}()",
+                                                                          displayName: Constants.Hooks.JobStartedStepName,
+                                                                          data: (object)jobHookData));
+                    }
+
                     preJobSteps.AddRange(prepareResult.ContainerSetupSteps);
 
                     // Add start-container steps, record and stop-container steps
@@ -313,6 +329,8 @@ namespace GitHub.Runner.Worker
                             ArgUtil.NotNull(extensionStep, extensionStep.DisplayName);
                             Guid stepId = Guid.NewGuid();
                             extensionStep.ExecutionContext = jobContext.CreateChild(stepId, extensionStep.DisplayName, stepId.ToString("N"), null, stepId.ToString("N"), ActionRunStage.Pre);
+                            extensionStep.ExecutionContext.StepTelemetry.Type = "runner";
+                            extensionStep.ExecutionContext.StepTelemetry.Action = extensionStep.DisplayName.ToLowerInvariant().Replace(' ', '_');
                         }
                         else if (step is IActionRunner actionStep)
                         {
@@ -331,6 +349,18 @@ namespace GitHub.Runner.Worker
                             intraActionStates.TryGetValue(actionStep.Action.Id, out var intraActionState);
                             actionStep.ExecutionContext = jobContext.CreateChild(actionStep.Action.Id, actionStep.DisplayName, actionStep.Action.Name, null, actionStep.Action.ContextName, ActionRunStage.Main, intraActionState);
                         }
+                    }
+
+                    // Register Job Completed hook if the variable is set
+                    var completedHookPath = Environment.GetEnvironmentVariable("ACTIONS_RUNNER_HOOK_JOB_COMPLETED");
+                    if (!string.IsNullOrEmpty(completedHookPath))
+                    {
+                        var hookProvider = HostContext.GetService<IJobHookProvider>();
+                        var jobHookData = new JobHookData(ActionRunStage.Post, completedHookPath);
+                        jobContext.RegisterPostJobStep(new JobExtensionRunner(runAsync: hookProvider.RunHook,
+                                                                          condition: $"{PipelineTemplateConstants.Always}()",
+                                                                          displayName: Constants.Hooks.JobCompletedStepName,
+                                                                          data: (object)jobHookData));
                     }
 
                     List<IStep> steps = new List<IStep>();
@@ -401,6 +431,8 @@ namespace GitHub.Runner.Worker
 
             // create a new timeline record node for 'Finalize job'
             IExecutionContext context = jobContext.CreateChild(Guid.NewGuid(), "Complete job", $"{nameof(JobExtension)}_Final", null, null, ActionRunStage.Post);
+            context.StepTelemetry.Type = "runner";
+            context.StepTelemetry.Action = "complete_job";
             using (var register = jobContext.CancellationToken.Register(() => { context.CancelToken(); }))
             {
                 try

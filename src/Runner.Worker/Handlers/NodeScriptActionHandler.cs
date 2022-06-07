@@ -1,12 +1,13 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using GitHub.DistributedTask.Pipelines;
+using GitHub.DistributedTask.Pipelines.ContextData;
+using GitHub.DistributedTask.WebApi;
 using GitHub.Runner.Common;
 using GitHub.Runner.Sdk;
-using GitHub.DistributedTask.WebApi;
-using Pipelines = GitHub.DistributedTask.Pipelines;
-using System;
-using System.Linq;
 
 namespace GitHub.Runner.Worker.Handlers
 {
@@ -74,19 +75,13 @@ namespace GitHub.Runner.Worker.Handlers
                 target = Data.Post;
             }
 
-            // Add Telemetry to JobContext to send with JobCompleteMessage
+            // Set extra telemetry base on the current context.
             if (stage == ActionRunStage.Main)
             {
-                var telemetry = new ActionsStepTelemetry
-                {
-                    Ref = GetActionRef(),
-                    HasPreStep = Data.HasPre,
-                    HasPostStep = Data.HasPost,
-                    IsEmbedded = ExecutionContext.IsEmbedded,
-                    Type = Data.NodeVersion
-                };
-                ExecutionContext.Root.ActionsStepsTelemetry.Add(telemetry);
+                ExecutionContext.StepTelemetry.HasPreStep = Data.HasPre;
+                ExecutionContext.StepTelemetry.HasPostStep = Data.HasPost;
             }
+            ExecutionContext.StepTelemetry.Type = Data.NodeVersion;
 
             ArgUtil.NotNullOrEmpty(target, nameof(target));
             target = Path.Combine(ActionDirectory, target);
@@ -99,6 +94,14 @@ namespace GitHub.Runner.Worker.Handlers
                 workingDirectory = HostContext.GetDirectory(WellKnownDirectory.Work);
             }
 
+#if OS_OSX
+            if (string.Equals(Data.NodeVersion, "node12", StringComparison.OrdinalIgnoreCase) &&
+                Constants.Runner.PlatformArchitecture.Equals(Constants.Architecture.Arm64))
+            {
+                ExecutionContext.Output($"The node12 is not supported on macOS ARM64 platform. Use node16 instead.");
+                Data.NodeVersion = "node16";
+            }
+#endif
             var nodeRuntimeVersion = await StepHost.DetermineNodeRuntimeVersion(ExecutionContext, Data.NodeVersion);
             string file = Path.Combine(HostContext.GetDirectory(WellKnownDirectory.Externals), nodeRuntimeVersion, "bin", $"node{IOUtil.ExeExtension}");
 
@@ -118,6 +121,17 @@ namespace GitHub.Runner.Worker.Handlers
 
             // Remove environment variable that may cause conflicts with the node within the runner.
             Environment.Remove("NODE_ICU_DATA"); // https://github.com/actions/runner/issues/795
+
+            if (Data.NodeVersion == "node12" && (ExecutionContext.Global.Variables.GetBoolean(Constants.Runner.Features.Node12Warning) ?? false))
+            {
+                if (!ExecutionContext.JobContext.ContainsKey("Node12ActionsWarnings"))
+                {                     
+                    ExecutionContext.JobContext["Node12ActionsWarnings"] = new ArrayContextData();
+                }
+                var repoAction = Action as RepositoryPathReference;
+                var actionDisplayName = new StringContextData(repoAction.Name ?? repoAction.Path); // local actions don't have a 'Name'                
+                ExecutionContext.JobContext["Node12ActionsWarnings"].AssertArray("Node12ActionsWarnings").Add(actionDisplayName);
+            }
 
             using (var stdoutManager = new OutputManager(ExecutionContext, ActionCommandManager))
             using (var stderrManager = new OutputManager(ExecutionContext, ActionCommandManager))

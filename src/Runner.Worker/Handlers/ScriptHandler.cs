@@ -1,12 +1,13 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Linq;
 using GitHub.DistributedTask.Pipelines.ContextData;
-using GitHub.Runner.Common;
-using GitHub.Runner.Sdk;
 using GitHub.DistributedTask.WebApi;
+using GitHub.Runner.Common;
+using GitHub.Runner.Common.Util;
+using GitHub.Runner.Sdk;
 using Pipelines = GitHub.DistributedTask.Pipelines;
 
 namespace GitHub.Runner.Worker.Handlers
@@ -21,18 +22,24 @@ namespace GitHub.Runner.Worker.Handlers
     {
         public ScriptActionExecutionData Data { get; set; }
 
-        public override void PrintActionDetails(ActionRunStage stage)
+        protected override void PrintActionDetails(ActionRunStage stage)
         {
-
-            if (stage == ActionRunStage.Post)
+            // if we're executing a Job Extension, we won't have an 'Action'
+            if (!IsActionStep)
             {
-                throw new NotSupportedException("Script action should not have 'Post' job action.");
+                if (Inputs.TryGetValue("path", out var path))
+                {
+                    ExecutionContext.Output($"##[group]Run '{path}'");
+                }
+                else
+                {
+                    throw new InvalidOperationException("Inputs 'path' must be set for job extensions");
+                }
             }
-
-            Inputs.TryGetValue("script", out string contents);
-            contents = contents ?? string.Empty;
-            if (Action.Type == Pipelines.ActionSourceType.Script)
+            else if (Action.Type == Pipelines.ActionSourceType.Script)
             {
+                Inputs.TryGetValue("script", out string contents);
+                contents = contents ?? string.Empty;
                 var firstLine = contents.TrimStart(' ', '\t', '\r', '\n');
                 var firstNewLine = firstLine.IndexOfAny(new[] { '\r', '\n' });
                 if (firstNewLine >= 0)
@@ -41,17 +48,16 @@ namespace GitHub.Runner.Worker.Handlers
                 }
 
                 ExecutionContext.Output($"##[group]Run {firstLine}");
+                var multiLines = contents.Replace("\r\n", "\n").TrimEnd('\n').Split('\n');
+                foreach (var line in multiLines)
+                {
+                    // Bright Cyan color
+                    ExecutionContext.Output($"\x1b[36;1m{line}\x1b[0m");
+                }
             }
             else
             {
-                throw new InvalidOperationException($"Invalid action type {Action.Type} for {nameof(ScriptHandler)}");
-            }
-
-            var multiLines = contents.Replace("\r\n", "\n").TrimEnd('\n').Split('\n');
-            foreach (var line in multiLines)
-            {
-                // Bright Cyan color
-                ExecutionContext.Output($"\x1b[36;1m{line}\x1b[0m");
+                throw new InvalidOperationException($"Invalid action type {Action?.Type} for {nameof(ScriptHandler)}");
             }
 
             string argFormat;
@@ -131,11 +137,6 @@ namespace GitHub.Runner.Worker.Handlers
 
         public async Task RunAsync(ActionRunStage stage)
         {
-            if (stage == ActionRunStage.Post)
-            {
-                throw new NotSupportedException("Script action should not have 'Post' job action.");
-            }
-
             // Validate args
             Trace.Entering();
             ArgUtil.NotNull(ExecutionContext, nameof(ExecutionContext));
@@ -143,17 +144,6 @@ namespace GitHub.Runner.Worker.Handlers
 
             var githubContext = ExecutionContext.ExpressionValues["github"] as GitHubContext;
             ArgUtil.NotNull(githubContext, nameof(githubContext));
-
-            // Add Telemetry to JobContext to send with JobCompleteMessage
-            if (stage == ActionRunStage.Main)
-            {
-                var telemetry = new ActionsStepTelemetry
-                {
-                    IsEmbedded = ExecutionContext.IsEmbedded,
-                    Type = "run",
-                };
-                ExecutionContext.Root.ActionsStepsTelemetry.Add(telemetry);
-            }
 
             var tempDirectory = HostContext.GetDirectory(WellKnownDirectory.Temp);
 
@@ -163,7 +153,8 @@ namespace GitHub.Runner.Worker.Handlers
             string workingDirectory = null;
             if (!Inputs.TryGetValue("workingDirectory", out workingDirectory))
             {
-                if (string.IsNullOrEmpty(ExecutionContext.ScopeName) && ExecutionContext.Global.JobDefaults.TryGetValue("run", out var runDefaults))
+                // Don't use job level working directories for hooks
+                if (IsActionStep && string.IsNullOrEmpty(ExecutionContext.ScopeName) && ExecutionContext.Global.JobDefaults.TryGetValue("run", out var runDefaults))
                 {
                     if (runDefaults.TryGetValue("working-directory", out workingDirectory))
                     {
@@ -222,15 +213,35 @@ namespace GitHub.Runner.Worker.Handlers
                 }
             }
 
+            // Don't override runner telemetry here
+            if (!string.IsNullOrEmpty(shellCommand) && IsActionStep)
+            {
+                ExecutionContext.StepTelemetry.Action = shellCommand;
+            }
+
             // No arg format was given, shell must be a built-in
             if (string.IsNullOrEmpty(argFormat) || !argFormat.Contains("{0}"))
             {
                 throw new ArgumentException("Invalid shell option. Shell must be a valid built-in (bash, sh, cmd, powershell, pwsh) or a format string containing '{0}'");
             }
-
-            // We do not not the full path until we know what shell is being used, so that we can determine the file extension
-            var scriptFilePath = Path.Combine(tempDirectory, $"{Guid.NewGuid()}{ScriptHandlerHelpers.GetScriptFileExtension(shellCommand)}");
-            var resolvedScriptPath = $"{StepHost.ResolvePathForStepHost(scriptFilePath).Replace("\"", "\\\"")}";
+            string scriptFilePath, resolvedScriptPath;
+            if (IsActionStep)
+            {
+                // We do not not the full path until we know what shell is being used, so that we can determine the file extension
+                scriptFilePath = Path.Combine(tempDirectory, $"{Guid.NewGuid()}{ScriptHandlerHelpers.GetScriptFileExtension(shellCommand)}");
+                resolvedScriptPath = $"{StepHost.ResolvePathForStepHost(scriptFilePath).Replace("\"", "\\\"")}";
+            }
+            else
+            {
+                // JobExtensionRunners run a script file, we load that from the inputs here
+                if (!Inputs.ContainsKey("path"))
+                {
+                    throw new ArgumentException("Expected 'path' input to be set");
+                }
+                scriptFilePath = Inputs["path"];
+                ArgUtil.NotNullOrEmpty(scriptFilePath, "path");
+                resolvedScriptPath = Inputs["path"].Replace("\"", "\\\"");
+            }
 
             // Format arg string with script path
             var arguments = string.Format(argFormat, resolvedScriptPath);
@@ -246,9 +257,12 @@ namespace GitHub.Runner.Worker.Handlers
 #else
             // Don't add a BOM. It causes the script to fail on some operating systems (e.g. on Ubuntu 14).
             var encoding = new UTF8Encoding(false);
-#endif
-            // Script is written to local path (ie host) but executed relative to the StepHost, which may be a container
-            File.WriteAllText(scriptFilePath, contents, encoding);
+#endif            
+            if (IsActionStep)
+            {
+                // Script is written to local path (ie host) but executed relative to the StepHost, which may be a container
+                File.WriteAllText(scriptFilePath, contents, encoding);
+            }
 
             // Prepend PATH
             AddPrependPathToEnvironment();
@@ -271,10 +285,10 @@ namespace GitHub.Runner.Worker.Handlers
             if (Environment.ContainsKey("DYLD_INSERT_LIBRARIES"))  // We don't check `isContainerStepHost` because we don't support container on macOS
             {
                 // launch `node macOSRunInvoker.js shell args` instead of `shell args` to avoid macOS SIP remove `DYLD_INSERT_LIBRARIES` when launch process
-                string node12 = Path.Combine(HostContext.GetDirectory(WellKnownDirectory.Externals), "node12", "bin", $"node{IOUtil.ExeExtension}");
+                string node = Path.Combine(HostContext.GetDirectory(WellKnownDirectory.Externals), NodeUtil.GetInternalNodeVersion(), "bin", $"node{IOUtil.ExeExtension}");
                 string macOSRunInvoker = Path.Combine(HostContext.GetDirectory(WellKnownDirectory.Bin), "macos-run-invoker.js");
                 arguments = $"\"{macOSRunInvoker.Replace("\"", "\\\"")}\" \"{fileName.Replace("\"", "\\\"")}\" {arguments}";
-                fileName = node12;
+                fileName = node;
             }
 #endif
             var systemConnection = ExecutionContext.Global.Endpoints.Single(x => string.Equals(x.Name, WellKnownServiceEndpointNames.SystemVssConnection, StringComparison.OrdinalIgnoreCase));

@@ -1,17 +1,18 @@
-using GitHub.DistributedTask.WebApi;
-using GitHub.Runner.Listener.Configuration;
 using System;
-using System.Threading;
-using System.Threading.Tasks;
-using GitHub.Services.WebApi;
-using Pipelines = GitHub.DistributedTask.Pipelines;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
+using GitHub.DistributedTask.WebApi;
 using GitHub.Runner.Common;
-using GitHub.Runner.Sdk;
-using System.Linq;
 using GitHub.Runner.Listener.Check;
+using GitHub.Runner.Listener.Configuration;
+using GitHub.Runner.Sdk;
+using GitHub.Services.WebApi;
+using Pipelines = GitHub.DistributedTask.Pipelines;
 
 namespace GitHub.Runner.Listener
 {
@@ -321,6 +322,7 @@ namespace GitHub.Runner.Listener
 
                 // Should we try to cleanup ephemeral runners
                 bool runOnceJobCompleted = false;
+                bool skipSessionDeletion = false;
                 try
                 {
                     var notification = HostContext.GetService<IJobNotification>();
@@ -407,6 +409,27 @@ namespace GitHub.Runner.Listener
                                 {
                                     autoUpdateInProgress = true;
                                     var runnerUpdateMessage = JsonUtility.FromString<AgentRefreshMessage>(message.Body);
+#if DEBUG
+                                    // Can mock the update for testing
+                                    if (StringUtil.ConvertToBoolean(Environment.GetEnvironmentVariable("GITHUB_ACTIONS_RUNNER_IS_MOCK_UPDATE")))
+                                    {
+
+                                        // The mock_update_messages.json file should be an object with keys being the current version and values being the targeted mock version object
+                                        // Example: { "2.283.2": {"targetVersion":"2.284.1"}, "2.284.1": {"targetVersion":"2.285.0"}}
+                                        var mockUpdatesPath = Path.Combine(HostContext.GetDirectory(WellKnownDirectory.Root), "mock_update_messages.json");
+                                        if (File.Exists(mockUpdatesPath))
+                                        {
+                                            var mockUpdateMessages = JsonUtility.FromString<Dictionary<string, AgentRefreshMessage>>(File.ReadAllText(mockUpdatesPath));
+                                            if (mockUpdateMessages.ContainsKey(BuildConstants.RunnerPackage.Version))
+                                            {
+                                                var mockTargetVersion = mockUpdateMessages[BuildConstants.RunnerPackage.Version].TargetVersion;
+                                                _term.WriteLine($"Mocking update, using version {mockTargetVersion} instead of {runnerUpdateMessage.TargetVersion}");
+                                                Trace.Info($"Mocking update, using version {mockTargetVersion} instead of {runnerUpdateMessage.TargetVersion}");
+                                                runnerUpdateMessage = new AgentRefreshMessage(runnerUpdateMessage.AgentId, mockTargetVersion, runnerUpdateMessage.Timeout);
+                                            }
+                                        }
+                                    }
+#endif
                                     var selfUpdater = HostContext.GetService<ISelfUpdater>();
                                     selfUpdateTask = selfUpdater.SelfUpdate(runnerUpdateMessage, jobDispatcher, false, HostContext.RunnerShutdownToken);
                                     Trace.Info("Refresh message received, kick-off selfupdate background process.");
@@ -446,6 +469,14 @@ namespace GitHub.Runner.Listener
                                     Trace.Info($"Skip message deletion for cancellation message '{message.MessageId}'.");
                                 }
                             }
+                            else if (string.Equals(message.MessageType, Pipelines.HostedRunnerShutdownMessage.MessageType, StringComparison.OrdinalIgnoreCase))
+                            {
+                                var HostedRunnerShutdownMessage = JsonUtility.FromString<Pipelines.HostedRunnerShutdownMessage>(message.Body);
+                                skipMessageDeletion = true;
+                                skipSessionDeletion = true;
+                                Trace.Info($"Service requests the hosted runner to shutdown. Reason: '{HostedRunnerShutdownMessage.Reason}'.");
+                                return Constants.Runner.ReturnCode.Success;
+                            }
                             else
                             {
                                 Trace.Error($"Received message {message.MessageId} with unsupported message type {message.MessageType}.");
@@ -479,15 +510,18 @@ namespace GitHub.Runner.Listener
                         await jobDispatcher.ShutdownAsync();
                     }
 
-                    try
+                    if (!skipSessionDeletion)
                     {
-                        await _listener.DeleteSessionAsync();
-                    }
-                    catch (Exception ex) when (runOnce)
-                    {
-                        // ignore exception during delete session for ephemeral runner since the runner might already be deleted from the server side
-                        // and the delete session call will ends up with 401.
-                        Trace.Info($"Ignore any exception during DeleteSession for an ephemeral runner. {ex}");
+                        try
+                        {
+                            await _listener.DeleteSessionAsync();
+                        }
+                        catch (Exception ex) when (runOnce)
+                        {
+                            // ignore exception during delete session for ephemeral runner since the runner might already be deleted from the server side
+                            // and the delete session call will ends up with 401.
+                            Trace.Info($"Ignore any exception during DeleteSession for an ephemeral runner. {ex}");
+                        }
                     }
 
                     messageQueueLoopTokenSource.Dispose();
