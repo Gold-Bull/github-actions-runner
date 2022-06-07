@@ -68,7 +68,7 @@ jobs:
       osx-x64-sha-noruntime-noexternals: ${{ steps.sha_noruntime_noexternals.outputs.osx-x64-sha256 }}
     strategy:
       matrix:
-        runtime: [ linux-x64, linux-arm64, linux-arm, win-x64, osx-x64 ]
+        runtime: [ linux-x64, linux-arm64, linux-arm, win-x64, osx-x64, rhel.8-s390x ]
         include:
         - runtime: linux-x64
           os: ubuntu-latest
@@ -80,6 +80,10 @@ jobs:
 
         - runtime: linux-arm
           os: ubuntu-latest
+          devScript: ./dev.sh
+
+        - runtime: rhel.8-s390x
+          os: S390X
           devScript: ./dev.sh
 
         - runtime: osx-x64
