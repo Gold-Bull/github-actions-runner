@@ -58,21 +58,24 @@ jobs:
       win-x64-sha-noexternals: ${{ steps.sha_noexternals.outputs.win-x64-sha256 }}
       osx-x64-sha-noexternals: ${{ steps.sha_noexternals.outputs.osx-x64-sha256 }}
       osx-arm64-sha-noexternals: ${{ steps.sha_noexternals.outputs.osx-arm64-sha256 }}
+      rhel.8-s390x-sha-noexternals: ${{ steps.sha_noexternals.outputs.rhel.8-s390x-sha256 }}
       linux-x64-sha-noruntime: ${{ steps.sha_noruntime.outputs.linux-x64-sha256 }}
       linux-arm64-sha-noruntime: ${{ steps.sha_noruntime.outputs.linux-arm64-sha256 }}
       linux-arm-sha-noruntime: ${{ steps.sha_noruntime.outputs.linux-arm-sha256 }}
       win-x64-sha-noruntime: ${{ steps.sha_noruntime.outputs.win-x64-sha256 }}
       osx-x64-sha-noruntime: ${{ steps.sha_noruntime.outputs.osx-x64-sha256 }}
       osx-arm64-sha-noruntime: ${{ steps.sha_noruntime.outputs.osx-arm64-sha256 }}
+      rhel.8-s390x-sha-noruntime: ${{ steps.sha_noruntime.outputs.rhel.8-s390x-sha256 }}
       linux-x64-sha-noruntime-noexternals: ${{ steps.sha_noruntime_noexternals.outputs.linux-x64-sha256 }}
       linux-arm64-sha-noruntime-noexternals: ${{ steps.sha_noruntime_noexternals.outputs.linux-arm64-sha256 }}
       linux-arm-sha-noruntime-noexternals: ${{ steps.sha_noruntime_noexternals.outputs.linux-arm-sha256 }}
       win-x64-sha-noruntime-noexternals: ${{ steps.sha_noruntime_noexternals.outputs.win-x64-sha256 }}
       osx-x64-sha-noruntime-noexternals: ${{ steps.sha_noruntime_noexternals.outputs.osx-x64-sha256 }}
       osx-arm64-sha-noruntime-noexternals: ${{ steps.sha_noruntime_noexternals.outputs.osx-arm64-sha256 }}
+      rhel.8-s390x-sha-noruntime-noexternals: ${{ steps.sha_noruntime_noexternals.outputs.rhel.8-s390x-sha256 }}
     strategy:
       matrix:
-        runtime: [ linux-x64, linux-arm64, linux-arm, win-x64, osx-x64, osx-arm64 ]
+        runtime: [ linux-x64, linux-arm64, linux-arm, win-x64, osx-x64, osx-arm64, rhel.8-s390x ]
         include:
         - runtime: linux-x64
           os: ubuntu-latest
@@ -84,6 +87,10 @@ jobs:
 
         - runtime: linux-arm
           os: ubuntu-latest
+          devScript: ./dev.sh
+
+        - runtime: rhel.8-s390x
+          os: S390X
           devScript: ./dev.sh
 
         - runtime: osx-x64
@@ -250,18 +257,21 @@ jobs:
           releaseNote = releaseNote.replace(/<LINUX_X64_SHA_NOEXTERNALS>/g, '${{needs.build.outputs.linux-x64-sha-noexternals}}')
           releaseNote = releaseNote.replace(/<LINUX_ARM_SHA_NOEXTERNALS>/g, '${{needs.build.outputs.linux-arm-sha-noexternals}}')
           releaseNote = releaseNote.replace(/<LINUX_ARM64_SHA_NOEXTERNALS>/g, '${{needs.build.outputs.linux-arm64-sha-noexternals}}')
+          releaseNote = releaseNote.replace(/<RHEL_8_S390X_SHA_NOEXTERNALS>/g, '${{needs.build.outputs.rhel.8-s390x-sha-noexternals}}')
           releaseNote = releaseNote.replace(/<WIN_X64_SHA_NORUNTIME>/g, '${{needs.build.outputs.win-x64-sha-noruntime}}')
           releaseNote = releaseNote.replace(/<OSX_X64_SHA_NORUNTIME>/g, '${{needs.build.outputs.osx-x64-sha-noruntime}}')
           releaseNote = releaseNote.replace(/<OSX_ARM64_SHA_NORUNTIME>/g, '${{needs.build.outputs.osx-arm64-sha-noruntime}}')
           releaseNote = releaseNote.replace(/<LINUX_X64_SHA_NORUNTIME>/g, '${{needs.build.outputs.linux-x64-sha-noruntime}}')
           releaseNote = releaseNote.replace(/<LINUX_ARM_SHA_NORUNTIME>/g, '${{needs.build.outputs.linux-arm-sha-noruntime}}')
           releaseNote = releaseNote.replace(/<LINUX_ARM64_SHA_NORUNTIME>/g, '${{needs.build.outputs.linux-arm64-sha-noruntime}}')
+          releaseNote = releaseNote.replace(/<RHEL_8_S390X_SHA_NORUNTIME>/g, '${{needs.build.outputs.rhel.8-s390x-sha-noruntime}}')
           releaseNote = releaseNote.replace(/<WIN_X64_SHA_NORUNTIME_NOEXTERNALS>/g, '${{needs.build.outputs.win-x64-sha-noruntime-noexternals}}')
           releaseNote = releaseNote.replace(/<OSX_X64_SHA_NORUNTIME_NOEXTERNALS>/g, '${{needs.build.outputs.osx-x64-sha-noruntime-noexternals}}')
           releaseNote = releaseNote.replace(/<OSX_ARM64_SHA_NORUNTIME_NOEXTERNALS>/g, '${{needs.build.outputs.osx-arm64-sha-noruntime-noexternals}}')
           releaseNote = releaseNote.replace(/<LINUX_X64_SHA_NORUNTIME_NOEXTERNALS>/g, '${{needs.build.outputs.linux-x64-sha-noruntime-noexternals}}')
           releaseNote = releaseNote.replace(/<LINUX_ARM_SHA_NORUNTIME_NOEXTERNALS>/g, '${{needs.build.outputs.linux-arm-sha-noruntime-noexternals}}')
           releaseNote = releaseNote.replace(/<LINUX_ARM64_SHA_NORUNTIME_NOEXTERNALS>/g, '${{needs.build.outputs.linux-arm64-sha-noruntime-noexternals}}')
+          releaseNote = releaseNote.replace(/<RHEL_8_S390X_SHA_NORUNTIME_NOEXTERNALS>/g, '${{needs.build.outputs.rhel.8-s390x-sha-noruntime-noexternals}}')
           console.log(releaseNote)
           core.setOutput('version', runnerVersion);
           core.setOutput('note', releaseNote);
@@ -276,6 +286,7 @@ jobs:
         echo "${{needs.build.outputs.linux-x64-sha}}  actions-runner-linux-x64-${{ steps.releaseNote.outputs.version }}.tar.gz" | shasum -a 256 -c
         echo "${{needs.build.outputs.linux-arm-sha}}  actions-runner-linux-arm-${{ steps.releaseNote.outputs.version }}.tar.gz" | shasum -a 256 -c
         echo "${{needs.build.outputs.linux-arm64-sha}}  actions-runner-linux-arm64-${{ steps.releaseNote.outputs.version }}.tar.gz" | shasum -a 256 -c
+        echo "${{needs.build.outputs.rhel.8-s390x-sha}}  actions-runner-rhel.8-s390x-${{ steps.releaseNote.outputs.version }}.tar.gz" | shasum -a 256 -c
 
     # Create GitHub release
     - uses: actions/create-release@master
@@ -411,6 +422,16 @@ jobs:
         asset_name: actions-runner-linux-arm64-${{ steps.releaseNote.outputs.version }}-noexternals.tar.gz
         asset_content_type: application/octet-stream
 
+    - name: Upload Release Asset (rhel.8-s390x-noexternals)
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.createRelease.outputs.upload_url }}
+        asset_path: ${{ github.workspace }}/_package_trims/trim_externals/actions-runner-rhel.8-s390x-${{ steps.releaseNote.outputs.version }}-noexternals.tar.gz
+        asset_name: actions-runner-rhel.8-s390x-${{ steps.releaseNote.outputs.version }}-noexternals.tar.gz
+        asset_content_type: application/octet-stream
+
     # Upload release assets (trim runtime)
     - name: Upload Release Asset (win-x64-noruntime)
       uses: actions/upload-release-asset@v1.0.1
@@ -470,6 +491,16 @@ jobs:
         upload_url: ${{ steps.createRelease.outputs.upload_url }}
         asset_path: ${{ github.workspace }}/_package_trims/trim_runtime/actions-runner-linux-arm64-${{ steps.releaseNote.outputs.version }}-noruntime.tar.gz
         asset_name: actions-runner-linux-arm64-${{ steps.releaseNote.outputs.version }}-noruntime.tar.gz
+        asset_content_type: application/octet-stream
+
+    - name: Upload Release Asset (rhel.8-s390x-noruntime)
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.createRelease.outputs.upload_url }}
+        asset_path: ${{ github.workspace }}/_package_trims/trim_runtime/actions-runner-rhel.8-s390x-${{ steps.releaseNote.outputs.version }}-noruntime.tar.gz
+        asset_name: actions-runner-rhel.8-s390x-${{ steps.releaseNote.outputs.version }}-noruntime.tar.gz
         asset_content_type: application/octet-stream
 
     # Upload release assets (trim runtime and externals)
@@ -533,6 +564,16 @@ jobs:
         asset_name: actions-runner-linux-arm64-${{ steps.releaseNote.outputs.version }}-noruntime-noexternals.tar.gz
         asset_content_type: application/octet-stream
 
+    - name: Upload Release Asset (rhel.8-s390x-noruntime-noexternals)
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.createRelease.outputs.upload_url }}
+        asset_path: ${{ github.workspace }}/_package_trims/trim_runtime_externals/actions-runner-rhel.8-s390x-${{ steps.releaseNote.outputs.version }}-noruntime-noexternals.tar.gz
+        asset_name: actions-runner-rhel.8-s390x-${{ steps.releaseNote.outputs.version }}-noruntime-noexternals.tar.gz
+        asset_content_type: application/octet-stream
+
     # Upload release assets (trimmedpackages.json)
     - name: Upload Release Asset (win-x64-trimmedpackages.json)
       uses: actions/upload-release-asset@v1.0.1
@@ -592,4 +633,14 @@ jobs:
         upload_url: ${{ steps.createRelease.outputs.upload_url }}
         asset_path: ${{ github.workspace }}/linux-arm64-trimmedpackages.json
         asset_name: actions-runner-linux-arm64-${{ steps.releaseNote.outputs.version }}-trimmedpackages.json
+        asset_content_type: application/octet-stream
+
+    - name: Upload Release Asset (rhel.8-s390x-trimmedpackages.json)
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.createRelease.outputs.upload_url }}
+        asset_path: ${{ github.workspace }}/rhel.8-s390x-trimmedpackages.json
+        asset_name: actions-runner-rhel.8-s390x-${{ steps.releaseNote.outputs.version }}-trimmedpackages.json
         asset_content_type: application/octet-stream

@@ -156,7 +156,10 @@ namespace GitHub.Runner.Listener
                             {
                                 envValue = env.Substring(separatorIndex + 1);
                             }
-
+                            if (!string.IsNullOrEmpty(envValue))
+                            {
+                                envValue = Environment.ExpandEnvironmentVariables(envValue);
+                            }
                             Environment.SetEnvironmentVariable(envKey, envValue);
                         }
                     }

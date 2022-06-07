@@ -18,7 +18,7 @@ jobs:
   build:
     strategy:
       matrix:
-        runtime: [ linux-x64, linux-arm64, linux-arm, win-x64, osx-x64, osx-arm64 ]
+        runtime: [ linux-x64, linux-arm64, linux-arm, win-x64, osx-x64, osx-arm64, rhel.8-s390x ]
         include:
         - runtime: linux-x64
           os: ubuntu-latest
@@ -30,6 +30,10 @@ jobs:
 
         - runtime: linux-arm
           os: ubuntu-latest
+          devScript: ./dev.sh
+
+        - runtime: rhel.8-s390x
+          os: S390X
           devScript: ./dev.sh
 
         - runtime: osx-x64
@@ -82,7 +86,7 @@ jobs:
       run: |
         ${{ matrix.devScript }} test
       working-directory: src
-      if: matrix.runtime != 'linux-arm64' && matrix.runtime != 'linux-arm' && matrix.runtime != 'osx-arm64'
+      if: matrix.runtime != 'linux-arm64' && matrix.runtime != 'linux-arm' && matrix.runtime != 'osx-arm64' && matrix.runtime != 'rhel.8-s390x'
 
     # Create runner package tar.gz/zip
     - name: Package Release
