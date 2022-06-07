@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using GitHub.Runner.Sdk;
@@ -56,6 +56,8 @@ namespace GitHub.Runner.Common.Util
                         return "ARM";
                     case Constants.Architecture.Arm64:
                         return "ARM64";
+                    case Constants.Architecture.s390x:
+                        return "S390X";
                     default:
                         throw new NotSupportedException(); // Should never reach here.
                 }

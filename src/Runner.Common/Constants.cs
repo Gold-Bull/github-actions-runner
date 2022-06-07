@@ -81,7 +81,7 @@ namespace GitHub.Runner.Common
 #elif ARM64            
             public static readonly Architecture PlatformArchitecture = Architecture.Arm64;
 #elif S390X
-            public static readonly Architecture PlatformArchitecture64 = Architecture.s390x;
+            public static readonly Architecture PlatformArchitecture = Architecture.s390x;
 #endif
 
             public static readonly TimeSpan ExitOnUnloadTimeout = TimeSpan.FromSeconds(30);
