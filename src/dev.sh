@@ -70,7 +70,7 @@ if [[ "$CURRENT_PLATFORM" == 'windows' ]]; then
         exit 1
     fi
 elif [[ "$CURRENT_PLATFORM" == 'linux' ]]; then
-    if [[ ("$RUNTIME_ID" != 'linux-x64') && ("$RUNTIME_ID" != 'linux-x86') && ("$RUNTIME_ID" != 'linux-arm64') && ("$RUNTIME_ID" != 'linux-arm') && ("$RUNTIME_ID" != 'rhel.8-s390x') ]]; then
+    if [[ ("$RUNTIME_ID" != 'linux-x64') && ("$RUNTIME_ID" != 'linux-x86') && ("$RUNTIME_ID" != 'linux-arm64') && ("$RUNTIME_ID" != 'linux-arm') && ( ! "$RUNTIME_ID" =~ .*-s390x$ ) ]]; then
        echo "Failed: Can't build $RUNTIME_ID package $CURRENT_PLATFORM" >&2
        exit 1
     fi
@@ -123,7 +123,7 @@ function layout ()
     dotnet msbuild -t:layout -p:PackageRuntime="${RUNTIME_ID}" -p:BUILDCONFIG="${BUILD_CONFIG}" -p:RunnerVersion="${RUNNER_VERSION}" ./dir.proj || failed build
 
     #change execution flag to allow running with sudo
-    if [[ ( "$RUNTIME_ID" != "rhel.8-s390x" ) && (("$CURRENT_PLATFORM" == "linux") || ("$CURRENT_PLATFORM" == "darwin")) ]]; then
+    if [[ ("$CURRENT_PLATFORM" == "linux") || ("$CURRENT_PLATFORM" == "darwin") ]]; then
         chmod +x "${LAYOUT_DIR}/bin/Runner.Listener"
         chmod +x "${LAYOUT_DIR}/bin/Runner.Worker"
         chmod +x "${LAYOUT_DIR}/bin/Runner.PluginHost"
@@ -285,7 +285,7 @@ function package ()
     popd > /dev/null
 }
 
-if [[ "$RUNTIME_ID" != 'rhel.8-s390x' ]]; then
+if [[ ! "$RUNTIME_ID" =~ .*-s390x$ ]]; then
     if [[ (! -d "${DOTNETSDK_INSTALLDIR}") || (! -e "${DOTNETSDK_INSTALLDIR}/.${DOTNETSDK_VERSION}") || (! -e "${DOTNETSDK_INSTALLDIR}/dotnet") ]]; then
         
         # Download dotnet SDK to ../_dotnetsdk directory
