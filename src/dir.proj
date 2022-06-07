@@ -41,7 +41,7 @@
     </ItemGroup>
 
     <Target Name="Build" DependsOnTargets="GenerateConstant">
-		<PropertyGroup Condition=" '$(PackageRuntime)'=='rhel.8-s390x' ">
+		<PropertyGroup Condition=" $(PackageRuntime.EndsWith('-s390x')) ">
 			<AdditionalProperties>SelfContained=false</AdditionalProperties>
 		</PropertyGroup>
         <MSBuild Targets="Restore" Projects="@(ProjectFiles)" StopOnFirstFailure="true" Properties="Configuration=$(BUILDCONFIG);PackageRuntime=$(PackageRuntime);RuntimeIdentifier=$(PackageRuntime);$(AdditionalProperties)" />
