@@ -15,16 +15,19 @@ x64
   - openSUSE 15+
   - SUSE Enterprise Linux (SLES) 12 SP2+
 
-## Install .Net Core 3.x Linux Dependencies
+s390x
+  - Red Hat Enterprise Linux 8
 
-The `./config.sh` will check .Net Core 3.x dependencies during runner configuration.  
+## Install .NET 6.0 Linux Dependencies
+
+The `./config.sh` will check .NET 6.0 dependencies during runner configuration.  
 You might see something like this which indicate a dependency's missing.
 ```bash
 ./config.sh
     libunwind.so.8 => not found
     libunwind-x86_64.so.8 => not found
-Dependencies is missing for Dotnet Core 6.0
-Execute ./bin/installdependencies.sh to install any missing Dotnet Core 6.0 dependencies.
+Dependencies is missing for Dotnet 6.0
+Execute ./bin/installdependencies.sh to install any missing Dotnet 6.0 dependencies.
 ```
 You can easily correct the problem by executing `./bin/installdependencies.sh`.  
 The `installdependencies.sh` script should install all required dependencies on all supported Linux versions  
@@ -47,6 +50,7 @@ Fedora based OS (Fedora, Red Hat Enterprise Linux, CentOS, Oracle Linux 7)
 - krb5-libs
 - zlib
 - libicu
+- dotnet-runtime-6.0 (Red Hat Enterprise Linux 8 on IBM Z and LinuxONE)
 
 SUSE based OS (OpenSUSE, SUSE Enterprise)
 
@@ -56,4 +60,4 @@ SUSE based OS (OpenSUSE, SUSE Enterprise)
 - zlib
 - libicu60_2
 
-## [More .Net Core Prerequisites Information](https://docs.microsoft.com/en-us/dotnet/core/linux-prerequisites?tabs=netcore2x)
+## [More .Net Prerequisites Information](https://docs.microsoft.com/en-us/dotnet/core/linux-prerequisites?tabs=net6)
