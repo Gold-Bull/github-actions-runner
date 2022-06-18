@@ -58,21 +58,21 @@ jobs:
       win-x64-sha-noexternals: ${{ steps.sha_noexternals.outputs.win-x64-sha256 }}
       osx-x64-sha-noexternals: ${{ steps.sha_noexternals.outputs.osx-x64-sha256 }}
       osx-arm64-sha-noexternals: ${{ steps.sha_noexternals.outputs.osx-arm64-sha256 }}
-      rhel8-s390x-sha-noexternals: ${{ steps.sha_noexternals.outputs.rhel.8-s390x-sha256 }}
+      rhel8-s390x-sha-noexternals: ${{ steps.sha_noexternals.outputs.rhel8-s390x-sha256 }}
       linux-x64-sha-noruntime: ${{ steps.sha_noruntime.outputs.linux-x64-sha256 }}
       linux-arm64-sha-noruntime: ${{ steps.sha_noruntime.outputs.linux-arm64-sha256 }}
       linux-arm-sha-noruntime: ${{ steps.sha_noruntime.outputs.linux-arm-sha256 }}
       win-x64-sha-noruntime: ${{ steps.sha_noruntime.outputs.win-x64-sha256 }}
       osx-x64-sha-noruntime: ${{ steps.sha_noruntime.outputs.osx-x64-sha256 }}
       osx-arm64-sha-noruntime: ${{ steps.sha_noruntime.outputs.osx-arm64-sha256 }}
-      rhel8-s390x-sha-noruntime: ${{ steps.sha_noruntime.outputs.rhel.8-s390x-sha256 }}
+      rhel8-s390x-sha-noruntime: ${{ steps.sha_noruntime.outputs.rhel8-s390x-sha256 }}
       linux-x64-sha-noruntime-noexternals: ${{ steps.sha_noruntime_noexternals.outputs.linux-x64-sha256 }}
       linux-arm64-sha-noruntime-noexternals: ${{ steps.sha_noruntime_noexternals.outputs.linux-arm64-sha256 }}
       linux-arm-sha-noruntime-noexternals: ${{ steps.sha_noruntime_noexternals.outputs.linux-arm-sha256 }}
       win-x64-sha-noruntime-noexternals: ${{ steps.sha_noruntime_noexternals.outputs.win-x64-sha256 }}
       osx-x64-sha-noruntime-noexternals: ${{ steps.sha_noruntime_noexternals.outputs.osx-x64-sha256 }}
       osx-arm64-sha-noruntime-noexternals: ${{ steps.sha_noruntime_noexternals.outputs.osx-arm64-sha256 }}
-      rhel8-s390x-sha-noruntime-noexternals: ${{ steps.sha_noruntime_noexternals.outputs.rhel.8-s390x-sha256 }}
+      rhel8-s390x-sha-noruntime-noexternals: ${{ steps.sha_noruntime_noexternals.outputs.rhel8-s390x-sha256 }}
     strategy:
       matrix:
         runtime: [ linux-x64, linux-arm64, linux-arm, win-x64, osx-x64, osx-arm64, rhel.8-s390x ]
@@ -129,8 +129,9 @@ jobs:
     - run: |
         file=$(ls)
         sha=$(sha256sum $file | awk '{ print $1 }')
+        runtime_name=${{matrix.runtime}}
         echo "Computed sha256: $sha for $file"
-        echo "::set-output name=${{matrix.runtime}}-sha256::$sha"
+        echo "::set-output name=${runtime_name/./}-sha256::$sha"
       shell: bash
       id: sha
       name: Compute SHA256
@@ -138,8 +139,9 @@ jobs:
     - run: |
         file=$(ls)
         sha=$(sha256sum $file | awk '{ print $1 }')
+        runtime_name=${{matrix.runtime}}
         echo "Computed sha256: $sha for $file"
-        echo "::set-output name=${{matrix.runtime}}-sha256::$sha"
+        echo "::set-output name=${runtime_name/./}-sha256::$sha"
         echo "::set-output name=sha256::$sha"
       shell: bash
       id: sha_noexternals
@@ -148,8 +150,9 @@ jobs:
     - run: |
         file=$(ls)
         sha=$(sha256sum $file | awk '{ print $1 }')
+        runtime_name=${{matrix.runtime}}
         echo "Computed sha256: $sha for $file"
-        echo "::set-output name=${{matrix.runtime}}-sha256::$sha"
+        echo "::set-output name=${runtime_name/./}-sha256::$sha"
         echo "::set-output name=sha256::$sha"
       shell: bash
       id: sha_noruntime
@@ -158,8 +161,9 @@ jobs:
     - run: |
         file=$(ls)
         sha=$(sha256sum $file | awk '{ print $1 }')
+        runtime_name=${{matrix.runtime}}
         echo "Computed sha256: $sha for $file"
-        echo "::set-output name=${{matrix.runtime}}-sha256::$sha"
+        echo "::set-output name=${runtime_name/./}-sha256::$sha"
         echo "::set-output name=sha256::$sha"
       shell: bash
       id: sha_noruntime_noexternals
