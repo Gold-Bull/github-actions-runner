@@ -218,10 +218,6 @@ namespace GitHub.Runner.Worker.Handlers
                 // the value directly in the command
                 dockerCommandArgs.Add($"-e {env.Key}");
             }
-            if (!string.IsNullOrEmpty(Container.UserName))
-            {
-                dockerCommandArgs.Add($"-u {Container.UserName}");
-            }
             if (!string.IsNullOrEmpty(PrependPath))
             {
                 // Prepend tool paths to container's PATH

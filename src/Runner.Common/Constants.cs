@@ -244,8 +244,6 @@ namespace GitHub.Runner.Common
 
                 // Set this env var to "node12" to downgrade the node version for internal functions (e.g hashfiles). This does NOT affect the version of node actions.
                 public static readonly string ForcedInternalNodeVersion = "ACTIONS_RUNNER_FORCED_INTERNAL_NODE_VERSION";
-
-                public static readonly string RunContainerJobAsCurrentUser = "AGENT_RUN_CONTAINER_JOB_AS_CURRENT_USER";
             }
 
             public static class System
