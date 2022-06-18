@@ -253,122 +253,7 @@ namespace GitHub.Runner.Worker
                 container.ContainerRuntimePath = DockerUtil.ParsePathFromConfigEnv(containerEnv);
                 executionContext.JobContext.Container["id"] = new StringContextData(container.ContainerId);
 #if !OS_WINDOWS
-                string runJobContainerAsRoot = Environment.GetEnvironmentVariable("AGENT_RUN_CONTAINER_JOB_AS_CURRENT_USER");
-                if(StringUtil.ConvertToBoolean(runJobContainerAsRoot))
-                {
-                    int execWhichBashExitCode = await _dockerManager.DockerExec(executionContext, container.ContainerId, string.Empty, $"sh -c \"command -v bash\"");
-                    if (execWhichBashExitCode != 0)
-                    {
-                        throw new InvalidOperationException($"Docker exec fail with exit code {execWhichBashExitCode}");
-                    }
-
-                    var sudoGroupName = "actions_sudo";
-                    int execGroupaddExitCode = await _dockerManager.DockerExec(executionContext, container.ContainerId, string.Empty, $"groupadd {sudoGroupName}");
-                    if (execGroupaddExitCode != 0)
-                    {
-                        throw new InvalidOperationException($"Docker exec fail with exit code {execGroupaddExitCode}");
-                    }
-
-                    int execEchoExitCode = await _dockerManager.DockerExec(executionContext, container.ContainerId, string.Empty, $"su -c \"echo '%{sudoGroupName} ALL=(ALL:ALL) NOPASSWD:ALL' >> /etc/sudoers\"");
-                    if (execEchoExitCode != 0)
-                    {
-                        throw new InvalidOperationException($"Docker exec fail with exit code {execEchoExitCode}");
-                    }
-
-                    var currentUserName = (await ExecuteCommandAsync(executionContext, "whoami", string.Empty)).FirstOrDefault();
-                    ArgUtil.NotNullOrEmpty(currentUserName, nameof(currentUserName));
-
-                    // Get current userId
-                    var currentUserId = (await ExecuteCommandAsync(executionContext, "id", $"-u {currentUserName}")).FirstOrDefault();
-                    ArgUtil.NotNullOrEmpty(currentUserId, nameof(currentUserId));
-
-                    string containerUserName = string.Empty;
-
-                    List<string> userNames = new List<string>();
-                    int execGrepExitCode = await _dockerManager.DockerExec(executionContext, container.ContainerId, string.Empty, $"bash -c \"getent passwd {currentUserId} | cut -d: -f1 \"", userNames);
-                    if (execGrepExitCode != 0)
-                    {
-                        throw new InvalidOperationException($"Docker exec fail with exit code {execGrepExitCode}");
-                    }
-
-                    if (userNames.Count > 0)
-                    {
-                        foreach (string username in userNames)
-                        {
-                            int execIdExitCode = await _dockerManager.DockerExec(executionContext, container.ContainerId, string.Empty, $"id -u {username}");
-                            if (execIdExitCode == 0)
-                            {
-                                containerUserName = username;
-                                break;
-                            }
-                        }
-                    }
-
-                    container.UserName = string.IsNullOrEmpty(containerUserName) ? currentUserName : containerUserName;
-                    int execUseraddExitCode = await _dockerManager.DockerExec(executionContext, container.ContainerId, string.Empty, $"useradd -m -u {currentUserId} {container.UserName}");
-                    if (execUseraddExitCode != 0)
-                    {
-                        throw new InvalidOperationException($"Docker exec fail with exit code {execUseraddExitCode}");
-                    }
-
-#if OS_OSX  
-                    string statFormatOption = "-f %g";
-#else   
-                    string statFormatOption = "-c %g";
-#endif  
-
-                    string currentUserGroupId = (await ExecuteCommandAsync(executionContext, "stat", $"{statFormatOption} '{Assembly.GetExecutingAssembly().Location}'")).FirstOrDefault();
-
-                    string existingGroupName = null;
-                    List<string> groupsOutput = new List<string>();
-                    int execGroupGrepExitCode = await _dockerManager.DockerExec(executionContext, container.ContainerId, string.Empty, $"bash -c \"cat /etc/group\"", groupsOutput);
-                    if (execGroupGrepExitCode != 0)
-                    {
-                        throw new InvalidOperationException($"Docker exec fail with exit code {execGroupGrepExitCode}");
-                    }
-
-                    if (groupsOutput.Count > 0)
-                    {
-                        foreach (string groupOutput in groupsOutput)
-                        {
-                            if(!string.IsNullOrEmpty(groupOutput))
-                            {
-                                var groupSegments = groupOutput.Split(':');
-                                if( groupSegments.Length != 4 )
-                                {
-                                    Trace.Warning($"Unexpected output from /etc/group: '{groupOutput}'");
-                                }
-                                else
-                                {
-                                    var userGroupName = groupSegments[0];
-                                    var groupId = groupSegments[2];
-
-                                    if(string.Equals(currentUserGroupId, groupId))
-                                    {
-                                        existingGroupName = userGroupName;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    if(string.IsNullOrEmpty(existingGroupName))
-                    {
-                        existingGroupName = "actions_group";
-                        int execDockerGroupaddExitCode = await _dockerManager.DockerExec(executionContext, container.ContainerId, string.Empty, $"groupadd -g {currentUserGroupId} {existingGroupName}");
-                        if (execDockerGroupaddExitCode != 0)
-                        {
-                            throw new InvalidOperationException($"Docker exec fail with exit code {execDockerGroupaddExitCode}");
-                        }
-                    }
-
-                    int execGroupUsermodExitCode = await _dockerManager.DockerExec(executionContext, container.ContainerId, string.Empty, $"usermod -a -g {existingGroupName} -G {sudoGroupName} {containerUserName}");
-                    if (execGroupUsermodExitCode != 0)
-                    {
-                        throw new InvalidOperationException($"Docker exec fail with exit code {execGroupUsermodExitCode}");
-                    }
-                }
+                await EnsureUidIfRequired(executionContext, container);
 #endif
             }
             executionContext.Output("##[endgroup]");
@@ -673,6 +558,126 @@ namespace GitHub.Runner.Worker
             if (dockerVersion.ClientVersion < requiredDockerEngineAPIVersion)
             {
                 throw new NotSupportedException($"Min required docker engine API client version is '{requiredDockerEngineAPIVersion}', your docker ('{_dockerManager.DockerPath}') client version is '{dockerVersion.ClientVersion}'");
+            }
+        }
+
+        private async Task EnsureUidIfRequired(IExecutionContext executionContext, ContainerInfo container)
+        {
+            string runJobContainerAsRoot = Environment.GetEnvironmentVariable(Constants.Variables.Agent.RunContainerJobAsCurrentUser);
+            if (StringUtil.ConvertToBoolean(runJobContainerAsRoot))
+            {
+                int execWhichBashExitCode = await _dockerManager.DockerExec(executionContext, container.ContainerId, string.Empty, $"sh -c \"command -v bash\"");
+                if (execWhichBashExitCode != 0)
+                {
+                    throw new InvalidOperationException($"Docker exec fail with exit code {execWhichBashExitCode}");
+                }
+
+                var sudoGroupName = "actions_sudo";
+                int execGroupaddExitCode = await _dockerManager.DockerExec(executionContext, container.ContainerId, string.Empty, $"groupadd {sudoGroupName}");
+                if (execGroupaddExitCode != 0)
+                {
+                    throw new InvalidOperationException($"Docker exec fail with exit code {execGroupaddExitCode}");
+                }
+
+                int execEchoExitCode = await _dockerManager.DockerExec(executionContext, container.ContainerId, string.Empty, $"su -c \"echo '%{sudoGroupName} ALL=(ALL:ALL) NOPASSWD:ALL' >> /etc/sudoers\"");
+                if (execEchoExitCode != 0)
+                {
+                    throw new InvalidOperationException($"Docker exec fail with exit code {execEchoExitCode}");
+                }
+
+                var currentUserName = (await ExecuteCommandAsync(executionContext, "whoami", string.Empty)).FirstOrDefault();
+                ArgUtil.NotNullOrEmpty(currentUserName, nameof(currentUserName));
+
+                // Get current userId
+                var currentUserId = (await ExecuteCommandAsync(executionContext, "id", $"-u {currentUserName}")).FirstOrDefault();
+                ArgUtil.NotNullOrEmpty(currentUserId, nameof(currentUserId));
+
+                string containerUserName = string.Empty;
+
+                List<string> userNames = new List<string>();
+                int execGrepExitCode = await _dockerManager.DockerExec(executionContext, container.ContainerId, string.Empty, $"bash -c \"getent passwd {currentUserId} | cut -d: -f1 \"", userNames);
+                if (execGrepExitCode != 0)
+                {
+                    throw new InvalidOperationException($"Docker exec fail with exit code {execGrepExitCode}");
+                }
+
+                if (userNames.Count > 0)
+                {
+                    foreach (string username in userNames)
+                    {
+                        int execIdExitCode = await _dockerManager.DockerExec(executionContext, container.ContainerId, string.Empty, $"id -u {username}");
+                        if (execIdExitCode == 0)
+                        {
+                            containerUserName = username;
+                            break;
+                        }
+                    }
+                }
+
+                container.UserName = string.IsNullOrEmpty(containerUserName) ? currentUserName : containerUserName;
+                int execUseraddExitCode = await _dockerManager.DockerExec(executionContext, container.ContainerId, string.Empty, $"useradd -m -u {currentUserId} {container.UserName}");
+                if (execUseraddExitCode != 0)
+                {
+                    throw new InvalidOperationException($"Docker exec fail with exit code {execUseraddExitCode}");
+                }
+
+#if OS_OSX
+                string statFormatOption = "-f %g";
+#else
+                string statFormatOption = "-c %g";
+#endif
+
+                string currentUserGroupId = (await ExecuteCommandAsync(executionContext, "stat", $"{statFormatOption} '{Assembly.GetExecutingAssembly().Location}'")).FirstOrDefault();
+
+                string existingGroupName = null;
+                List<string> groupsOutput = new List<string>();
+                int execGroupGrepExitCode = await _dockerManager.DockerExec(executionContext, container.ContainerId, string.Empty, $"bash -c \"cat /etc/group\"", groupsOutput);
+                if (execGroupGrepExitCode != 0)
+                {
+                    throw new InvalidOperationException($"Docker exec fail with exit code {execGroupGrepExitCode}");
+                }
+
+                if (groupsOutput.Count > 0)
+                {
+                    foreach (string groupOutput in groupsOutput)
+                    {
+                        if (!string.IsNullOrEmpty(groupOutput))
+                        {
+                            var groupSegments = groupOutput.Split(':');
+                            if (groupSegments.Length != 4)
+                            {
+                                Trace.Warning($"Unexpected output from /etc/group: '{groupOutput}'");
+                            }
+                            else
+                            {
+                                var userGroupName = groupSegments[0];
+                                var groupId = groupSegments[2];
+
+                                if (string.Equals(currentUserGroupId, groupId))
+                                {
+                                    existingGroupName = userGroupName;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (string.IsNullOrEmpty(existingGroupName))
+                {
+                    existingGroupName = "actions_group";
+                    int execDockerGroupaddExitCode = await _dockerManager.DockerExec(executionContext, container.ContainerId, string.Empty, $"groupadd -g {currentUserGroupId} {existingGroupName}");
+                    if (execDockerGroupaddExitCode != 0)
+                    {
+                        throw new InvalidOperationException($"Docker exec fail with exit code {execDockerGroupaddExitCode}");
+                    }
+                }
+
+                int execGroupUsermodExitCode = await _dockerManager.DockerExec(executionContext, container.ContainerId, string.Empty, $"usermod -a -g {existingGroupName} -G {sudoGroupName} {containerUserName}");
+                if (execGroupUsermodExitCode != 0)
+                {
+                    throw new InvalidOperationException($"Docker exec fail with exit code {execGroupUsermodExitCode}");
+                }
             }
         }
     }
