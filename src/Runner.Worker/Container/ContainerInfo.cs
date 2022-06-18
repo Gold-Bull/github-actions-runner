@@ -90,7 +90,6 @@ namespace GitHub.Runner.Worker.Container
         public string RegistryAuthUsername { get; set; }
         public string RegistryAuthPassword { get; set; }
         public bool IsJobContainer { get; set; }
-        public string UserName { get; set; }
         public bool IsAlpine { get; set; }
 
         public IDictionary<string, string> ContainerEnvironmentVariables
