@@ -52,6 +52,7 @@ jobs:
       win-x64-sha: ${{ steps.sha.outputs.win-x64-sha256 }}
       osx-x64-sha: ${{ steps.sha.outputs.osx-x64-sha256 }}
       osx-arm64-sha: ${{ steps.sha.outputs.osx-arm64-sha256 }}
+      rhel8-s390x-sha: ${{ steps.sha.outputs.rhel8-s390x-sha256 }}
       linux-x64-sha-noexternals: ${{ steps.sha_noexternals.outputs.linux-x64-sha256 }}
       linux-arm64-sha-noexternals: ${{ steps.sha_noexternals.outputs.linux-arm64-sha256 }}
       linux-arm-sha-noexternals: ${{ steps.sha_noexternals.outputs.linux-arm-sha256 }}
@@ -250,6 +251,7 @@ jobs:
           const runnerVersion = fs.readFileSync('${{ github.workspace }}/src/runnerversion', 'utf8').replace(/\n$/g, '')
           var releaseNote = fs.readFileSync('${{ github.workspace }}/releaseNote.md', 'utf8').replace(/<RUNNER_VERSION>/g, runnerVersion)
           releaseNote = releaseNote.replace(/<WIN_X64_SHA>/g, '${{needs.build.outputs.win-x64-sha}}')
+          releaseNote = releaseNote.replace(/<RHEL_8_S390X_SHA>/g, '${{needs.build.outputs.rhel8-s390x-sha}}')
           releaseNote = releaseNote.replace(/<OSX_X64_SHA>/g, '${{needs.build.outputs.osx-x64-sha}}')
           releaseNote = releaseNote.replace(/<OSX_ARM64_SHA>/g, '${{needs.build.outputs.osx-arm64-sha}}')
           releaseNote = releaseNote.replace(/<LINUX_X64_SHA>/g, '${{needs.build.outputs.linux-x64-sha}}')
@@ -363,6 +365,16 @@ jobs:
         upload_url: ${{ steps.createRelease.outputs.upload_url }}
         asset_path: ${{ github.workspace }}/_package/actions-runner-linux-arm64-${{ steps.releaseNote.outputs.version }}.tar.gz
         asset_name: actions-runner-linux-arm64-${{ steps.releaseNote.outputs.version }}.tar.gz
+        asset_content_type: application/octet-stream
+
+    - name: Upload Release Asset (rhel.8-s390x)
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.createRelease.outputs.upload_url }}
+        asset_path: ${{ github.workspace }}/_package/actions-runner-rhel.8-s390x-${{ steps.releaseNote.outputs.version }}.tar.gz
+        asset_name: actions-runner-rhel.8-s390x-${{ steps.releaseNote.outputs.version }}.tar.gz
         asset_content_type: application/octet-stream
 
     # Upload release assets (trim externals)
