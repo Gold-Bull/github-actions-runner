@@ -1,8 +1,7 @@
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <!-- .NET 6 on RedHat 8 (S390X) does not have runtime packages in Nuget.org, so do not define RuntimeIdentifiers -->
-    <RuntimeIdentifiers Condition=" !$(PackageRuntime.EndsWith('-s390x')) " >win-x64;win-x86;linux-x64;linux-arm64;linux-arm;osx-x64;osx-arm64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;linux-s390x;osx-x64;osx-arm64</RuntimeIdentifiers>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <PredefinedCulturesOnly>false</PredefinedCulturesOnly>
     <PublishReadyToRunComposite>true</PublishReadyToRunComposite>
@@ -50,7 +49,7 @@
   <PropertyGroup Condition="'$(BUILD_OS)' == 'Linux' AND '$(PackageRuntime)' == 'linux-arm64'">
     <DefineConstants>$(DefineConstants);ARM64</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(BUILD_OS)' == 'Linux' AND $(PackageRuntime.EndsWith('-s390x')) ">
+  <PropertyGroup Condition="'$(BUILD_OS)' == 'Linux' AND '$(PackageRuntime)' == 'linux-s390x'">
     <DefineConstants>$(DefineConstants);S390X</DefineConstants>
   </PropertyGroup>
 
