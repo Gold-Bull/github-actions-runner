@@ -130,9 +130,8 @@ jobs:
     - run: |
         file=$(ls)
         sha=$(sha256sum $file | awk '{ print $1 }')
-        runtime_name=${{matrix.runtime}}
         echo "Computed sha256: $sha for $file"
-        echo "::set-output name=${runtime_name/./}-sha256::$sha"
+        echo "::set-output name=${{matrix.runtime}}-sha256::$sha"
       shell: bash
       id: sha
       name: Compute SHA256
@@ -140,9 +139,8 @@ jobs:
     - run: |
         file=$(ls)
         sha=$(sha256sum $file | awk '{ print $1 }')
-        runtime_name=${{matrix.runtime}}
         echo "Computed sha256: $sha for $file"
-        echo "::set-output name=${runtime_name/./}-sha256::$sha"
+        echo "::set-output name=${{matrix.runtime}}-sha256::$sha"
         echo "::set-output name=sha256::$sha"
       shell: bash
       id: sha_noexternals
@@ -151,9 +149,8 @@ jobs:
     - run: |
         file=$(ls)
         sha=$(sha256sum $file | awk '{ print $1 }')
-        runtime_name=${{matrix.runtime}}
         echo "Computed sha256: $sha for $file"
-        echo "::set-output name=${runtime_name/./}-sha256::$sha"
+        echo "::set-output name=${{matrix.runtime}}-sha256::$sha"
         echo "::set-output name=sha256::$sha"
       shell: bash
       id: sha_noruntime
@@ -162,9 +159,8 @@ jobs:
     - run: |
         file=$(ls)
         sha=$(sha256sum $file | awk '{ print $1 }')
-        runtime_name=${{matrix.runtime}}
         echo "Computed sha256: $sha for $file"
-        echo "::set-output name=${runtime_name/./}-sha256::$sha"
+        echo "::set-output name=${{matrix.runtime}}-sha256::$sha"
         echo "::set-output name=sha256::$sha"
       shell: bash
       id: sha_noruntime_noexternals

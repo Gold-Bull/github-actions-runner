@@ -15,8 +15,6 @@ x64
   - openSUSE 15+
   - SUSE Enterprise Linux (SLES) 12 SP2+
 
-s390x
-  - Red Hat Enterprise Linux 8
 
 ## Install .NET 6.0 Linux Dependencies
 
@@ -50,7 +48,6 @@ Fedora based OS (Fedora, Red Hat Enterprise Linux, CentOS, Oracle Linux 7)
 - krb5-libs
 - zlib
 - libicu
-- dotnet-runtime-6.0 (Red Hat Enterprise Linux 8 on IBM Z and LinuxONE)
 
 SUSE based OS (OpenSUSE, SUSE Enterprise)
 
