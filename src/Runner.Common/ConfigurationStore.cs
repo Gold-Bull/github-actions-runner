@@ -1,4 +1,3 @@
-﻿using GitHub.Runner.Common.Util;
 using GitHub.Runner.Sdk;
 using System;
 using System.IO;
@@ -51,6 +50,12 @@ namespace GitHub.Runner.Common
         [DataMember(EmitDefaultValue = false)]
         public string MonitorSocketAddress { get; set; }
 
+        [DataMember(EmitDefaultValue = false)]
+        public bool UseV2Flow { get; set; }
+
+        [DataMember(EmitDefaultValue = false)]
+        public string ServerUrlV2 { get; set; }
+
         [IgnoreDataMember]
         public bool IsHostedServer
         {
@@ -75,17 +80,18 @@ namespace GitHub.Runner.Common
         {
             get
             {
-                Uri accountUri = new Uri(this.ServerUrl);
+                Uri accountUri = new(this.ServerUrl);
                 string repoOrOrgName = string.Empty;
 
-                if (accountUri.Host.EndsWith(".githubusercontent.com", StringComparison.OrdinalIgnoreCase))
+                if (accountUri.Host.EndsWith(".githubusercontent.com", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(this.GitHubUrl))
                 {
-                    Uri gitHubUrl = new Uri(this.GitHubUrl);
+                    Uri gitHubUrl = new(this.GitHubUrl);
 
                     // Use the "NWO part" from the GitHub URL path
                     repoOrOrgName = gitHubUrl.AbsolutePath.Trim('/');
                 }
-                else
+
+                if (string.IsNullOrEmpty(repoOrOrgName))
                 {
                     repoOrOrgName = accountUri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
                 }

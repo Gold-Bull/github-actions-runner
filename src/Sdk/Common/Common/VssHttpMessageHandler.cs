@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -251,7 +251,14 @@ namespace GitHub.Services.Common
 
                         // Invalidate the token and ensure that we have the correct token provider for the challenge
                         // which we just received
-                        VssHttpEventSource.Log.AuthenticationFailed(traceActivity, response);
+                        if (retries < m_maxAuthRetries)
+                        {
+                            VssHttpEventSource.Log.AuthenticationFailed(traceActivity, response);
+                        }
+                        else
+                        {
+                            VssHttpEventSource.Log.AuthenticationFailedOnFirstRequest(traceActivity, response);
+                        }
 
                         if (provider != null)
                         {

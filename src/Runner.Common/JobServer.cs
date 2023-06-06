@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,7 +13,8 @@ using GitHub.Runner.Sdk;
 using GitHub.Services.Common;
 using GitHub.Services.WebApi;
 using GitHub.Services.WebApi.Utilities.Internal;
-using Newtonsoft.Json;
+using GitHub.Services.Results.Client;
+using GitHub.Services.OAuth;
 
 namespace GitHub.Runner.Common
 {
@@ -198,13 +199,15 @@ namespace GitHub.Runner.Common
             {
                 Trace.Info($"Attempting to start websocket client with delay {delay}.");
                 await Task.Delay(delay);
-                await this._websocketClient.ConnectAsync(new Uri(feedStreamUrl), default(CancellationToken));
+                using var connectTimeoutTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+                await this._websocketClient.ConnectAsync(new Uri(feedStreamUrl), connectTimeoutTokenSource.Token);
                 Trace.Info($"Successfully started websocket client.");
             }
             catch (Exception ex)
             {
                 Trace.Info("Exception caught during websocket client connect, fallback of HTTP would be used now instead of websocket.");
                 Trace.Error(ex);
+                this._websocketClient = null;
             }
         }
 
@@ -305,6 +308,7 @@ namespace GitHub.Runner.Common
             CheckConnection();
             return _taskClient.CreateAttachmentAsync(scopeIdentifier, hubName, planId, timelineId, timelineRecordId, type, name, uploadStream, cancellationToken: cancellationToken);
         }
+
 
         public Task<TaskLog> CreateLogAsync(Guid scopeIdentifier, string hubName, Guid planId, TaskLog log, CancellationToken cancellationToken)
         {

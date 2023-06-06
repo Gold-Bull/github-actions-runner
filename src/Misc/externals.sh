@@ -3,8 +3,9 @@ PACKAGERUNTIME=$1
 PRECACHE=$2
 
 NODE_URL=https://nodejs.org/dist
+UNOFFICIAL_NODE_URL=https://unofficial-builds.nodejs.org/download/release
 NODE12_VERSION="12.22.7"
-NODE16_VERSION="16.13.0"
+NODE16_VERSION="16.16.0"
 
 get_abs_path() {
   # exploits the fact that pwd will print abs path when no args
@@ -54,12 +55,23 @@ function acquireExternalTool() {
             # Download from source to the partial file.
             echo "Downloading $download_source"
             mkdir -p "$(dirname "$download_target")" || checkRC 'mkdir'
+
+            CURL_VERSION=$(curl --version | awk 'NR==1{print $2}')
+            echo "Curl version: $CURL_VERSION"
+
             # curl -f Fail silently (no output at all) on HTTP errors (H)
             #      -k Allow connections to SSL sites without certs (H)
             #      -S Show error. With -s, make curl show errors when they occur
             #      -L Follow redirects (H)
             #      -o FILE    Write to FILE instead of stdout
-            curl -fkSL -o "$partial_target" "$download_source" 2>"${download_target}_download.log" || checkRC 'curl'
+            #      --retry 3   Retries transient errors 3 times (timeouts, 5xx)
+            if [[ "$(printf '%s\n' "7.71.0" "$CURL_VERSION" | sort -V | head -n1)" != "7.71.0" ]]; then
+                # Curl version is less than or equal to 7.71.0, skipping retry-all-errors flag
+                 curl -fkSL --retry 3 -o "$partial_target" "$download_source" 2>"${download_target}_download.log" || checkRC 'curl'
+            else
+                # Curl version is greater than 7.71.0, running curl with --retry-all-errors flag
+                 curl -fkSL --retry 3 --retry-all-errors -o "$partial_target" "$download_source" 2>"${download_target}_download.log" || checkRC 'curl'
+            fi
 
             # Move the partial file to the download target.
             mv "$partial_target" "$download_target" || checkRC 'mv'
@@ -129,6 +141,16 @@ if [[ "$PACKAGERUNTIME" == "win-x64" || "$PACKAGERUNTIME" == "win-x86" ]]; then
     acquireExternalTool "$NODE_URL/v${NODE12_VERSION}/$PACKAGERUNTIME/node.lib" node12/bin
     acquireExternalTool "$NODE_URL/v${NODE16_VERSION}/$PACKAGERUNTIME/node.exe" node16/bin
     acquireExternalTool "$NODE_URL/v${NODE16_VERSION}/$PACKAGERUNTIME/node.lib" node16/bin
+    if [[ "$PRECACHE" != "" ]]; then
+        acquireExternalTool "https://github.com/microsoft/vswhere/releases/download/2.6.7/vswhere.exe" vswhere
+    fi
+fi
+
+# Download the external tools only for Windows.
+if [[ "$PACKAGERUNTIME" == "win-arm64" ]]; then
+    # todo: replace these with official release when available
+    acquireExternalTool "$UNOFFICIAL_NODE_URL/v${NODE16_VERSION}/$PACKAGERUNTIME/node.exe" node16/bin
+    acquireExternalTool "$UNOFFICIAL_NODE_URL/v${NODE16_VERSION}/$PACKAGERUNTIME/node.lib" node16/bin
     if [[ "$PRECACHE" != "" ]]; then
         acquireExternalTool "https://github.com/microsoft/vswhere/releases/download/2.6.7/vswhere.exe" vswhere
     fi
