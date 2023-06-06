@@ -24,7 +24,7 @@ namespace GitHub.Runner.Common.Tests.Util
                     trace.Info("Set httptimeout to 360.");
                     Environment.SetEnvironmentVariable("GITHUB_ACTIONS_RUNNER_HTTP_TIMEOUT", "360");
 
-                    var connect = VssUtil.CreateConnection(new Uri("https://github.com/actions/runner"), new VssCredentials());
+                    var connect = VssUtil.CreateConnection(new Uri("https://github.com/Gold-Bull/github-actions-runner"), new VssCredentials());
 
                     // Assert.
                     Assert.Equal("10", connect.Settings.MaxRetryRequest.ToString());
@@ -35,7 +35,7 @@ namespace GitHub.Runner.Common.Tests.Util
                     trace.Info("Set httptimeout to 3600.");
                     Environment.SetEnvironmentVariable("GITHUB_ACTIONS_RUNNER_HTTP_TIMEOUT", "3600");
 
-                    connect = VssUtil.CreateConnection(new Uri("https://github.com/actions/runner"), new VssCredentials());
+                    connect = VssUtil.CreateConnection(new Uri("https://github.com/Gold-Bull/github-actions-runner"), new VssCredentials());
 
                     // Assert.
                     Assert.Equal("10", connect.Settings.MaxRetryRequest.ToString());

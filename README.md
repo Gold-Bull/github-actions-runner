@@ -4,7 +4,7 @@
 
 # GitHub Actions Runner
 
-[![Actions Status](https://github.com/actions/runner/workflows/Runner%20CI/badge.svg)](https://github.com/actions/runner/actions)
+[![Actions Status](https://github.com/Gold-Bull/github-actions-runner/workflows/Runner%20CI/badge.svg)](https://github.com/Gold-Bull/github-actions-runner/actions)
 
 The runner is the application that runs a job from a GitHub Actions workflow. It is used by GitHub Actions in the [hosted virtual environments](https://github.com/actions/virtual-environments), or you can [self-host the runner](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/about-self-hosted-runners) in your own environment.
 
@@ -14,11 +14,11 @@ For more information about installing and using self-hosted runners, see [Adding
 
 Runner releases:
 
-![win](docs/res/win_sm.png) [Pre-reqs](docs/start/envwin.md) | [Download](https://github.com/actions/runner/releases)  
+![win](docs/res/win_sm.png) [Pre-reqs](docs/start/envwin.md) | [Download](https://github.com/Gold-Bull/github-actions-runner/releases)  
 
-![macOS](docs/res/apple_sm.png)  [Pre-reqs](docs/start/envosx.md) | [Download](https://github.com/actions/runner/releases)  
+![macOS](docs/res/apple_sm.png)  [Pre-reqs](docs/start/envosx.md) | [Download](https://github.com/Gold-Bull/github-actions-runner/releases)  
 
-![linux](docs/res/linux_sm.png)  [Pre-reqs](docs/start/envlinux.md) | [Download](https://github.com/actions/runner/releases)
+![linux](docs/res/linux_sm.png)  [Pre-reqs](docs/start/envlinux.md) | [Download](https://github.com/Gold-Bull/github-actions-runner/releases)
 
 ## Contribute
 

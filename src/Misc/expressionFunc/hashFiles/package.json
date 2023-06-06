@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/actions/runner.git"
+    "url": "git+https://github.com/Gold-Bull/github-actions-runner.git"
   },
   "keywords": [
     "actions"

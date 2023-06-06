@@ -48,7 +48,7 @@ namespace GitHub.Runner.Common.Tests.Listener
             httpClientHandler.AllowAutoRedirect = false;
             using (var client = new HttpClient(httpClientHandler))
             {
-                var response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, "https://github.com/actions/runner/releases/latest"));
+                var response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, "https://github.com/Gold-Bull/github-actions-runner/releases/latest"));
                 if (response.StatusCode == System.Net.HttpStatusCode.Redirect)
                 {
                     var redirectUrl = response.Headers.Location.ToString();
@@ -59,21 +59,21 @@ namespace GitHub.Runner.Common.Tests.Listener
                         latestVersion = match.Groups["version"].Value;
 
 #if !OS_WINDOWS
-                        _packageUrl = $"https://github.com/actions/runner/releases/download/v{latestVersion}/actions-runner-{BuildConstants.RunnerPackage.PackageName}-{latestVersion}.tar.gz";
+                        _packageUrl = $"https://github.com/Gold-Bull/github-actions-runner/releases/download/v{latestVersion}/actions-runner-{BuildConstants.RunnerPackage.PackageName}-{latestVersion}.tar.gz";
 #else
-                        _packageUrl = $"https://github.com/actions/runner/releases/download/v{latestVersion}/actions-runner-{BuildConstants.RunnerPackage.PackageName}-{latestVersion}.zip";
+                        _packageUrl = $"https://github.com/Gold-Bull/github-actions-runner/releases/download/v{latestVersion}/actions-runner-{BuildConstants.RunnerPackage.PackageName}-{latestVersion}.zip";
 #endif
                     }
                     else
                     {
-                        throw new Exception("The latest runner version could not be determined so a download URL could not be generated for it. Please check the location header of the redirect response of 'https://github.com/actions/runner/releases/latest'");
+                        throw new Exception("The latest runner version could not be determined so a download URL could not be generated for it. Please check the location header of the redirect response of 'https://github.com/Gold-Bull/github-actions-runner/releases/latest'");
                     }
                 }
             }
 
             using (var client = new HttpClient())
             {
-                var json = await client.GetStringAsync($"https://github.com/actions/runner/releases/download/v{latestVersion}/actions-runner-{BuildConstants.RunnerPackage.PackageName}-{latestVersion}-trimmedpackages.json");
+                var json = await client.GetStringAsync($"https://github.com/Gold-Bull/github-actions-runner/releases/download/v{latestVersion}/actions-runner-{BuildConstants.RunnerPackage.PackageName}-{latestVersion}-trimmedpackages.json");
                 _trimmedPackages = StringUtil.ConvertFromJson<List<TrimmedPackageMetadata>>(json);
             }
 
@@ -220,7 +220,7 @@ namespace GitHub.Runner.Common.Tests.Listener
                     hc.SetSingleton<IHttpClientHandlerFactory>(new HttpClientHandlerFactory());
 
                     _runnerServer.Setup(x => x.GetPackageAsync("agent", BuildConstants.RunnerPackage.PackageName, "3.299.0", true, It.IsAny<CancellationToken>()))
-                             .Returns(Task.FromResult(new PackageMetadata() { Platform = BuildConstants.RunnerPackage.PackageName, Version = new PackageVersion("3.299.0"), DownloadUrl = $"https://github.com/actions/runner/notexists" }));
+                             .Returns(Task.FromResult(new PackageMetadata() { Platform = BuildConstants.RunnerPackage.PackageName, Version = new PackageVersion("3.299.0"), DownloadUrl = $"https://github.com/Gold-Bull/github-actions-runner/notexists" }));
 
                     var p1 = new ProcessInvokerWrapper();
                     p1.Initialize(hc);

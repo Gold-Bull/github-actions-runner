@@ -144,7 +144,7 @@ runner_file="actions-runner-${runner_plat}-x64-${latest_version}.tar.gz"
 if [ -f "${runner_file}" ]; then
     echo "${runner_file} exists. skipping download."
 else
-    runner_url="https://github.com/actions/runner/releases/download/${latest_version_label}/${runner_file}"
+    runner_url="https://github.com/Gold-Bull/github-actions-runner/releases/download/${latest_version_label}/${runner_file}"
 
     echo "Downloading ${latest_version_label} for ${runner_plat} ..."
     echo $runner_url
