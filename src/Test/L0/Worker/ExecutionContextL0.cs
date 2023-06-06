@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -941,7 +941,7 @@ namespace GitHub.Runner.Common.Tests.Worker
                 var expected = new DictionaryContextData();
                 expected["VARIABLE_1"] = new StringContextData("value1");
                 expected["VARIABLE_2"] = new StringContextData("value1");
-                
+
                 Assert.True(ExpressionValuesAssertEqual(expected, jobContext.ExpressionValues["vars"] as DictionaryContextData));
             }
         }
@@ -983,7 +983,7 @@ namespace GitHub.Runner.Common.Tests.Worker
 
                 jobContext.InitializeJob(jobRequest, CancellationToken.None);
 
-                
+
                 Assert.Equal("true", jobContext.Global.Variables.Get(Constants.Variables.Actions.StepDebug));
                 Assert.Equal("true", jobContext.Global.Variables.Get(Constants.Variables.Actions.RunnerDebug));
             }
@@ -1029,7 +1029,7 @@ namespace GitHub.Runner.Common.Tests.Worker
 
                 jobContext.InitializeJob(jobRequest, CancellationToken.None);
 
-                
+
                 Assert.Equal("false", jobContext.Global.Variables.Get(Constants.Variables.Actions.StepDebug));
                 Assert.Equal("false", jobContext.Global.Variables.Get(Constants.Variables.Actions.RunnerDebug));
             }

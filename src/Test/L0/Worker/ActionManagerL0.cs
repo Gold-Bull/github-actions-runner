@@ -1004,7 +1004,7 @@ namespace GitHub.Runner.Common.Tests.Worker
                 };
 
                 //Act
-                var result =  await _actionManager.PrepareActionsAsync(_ec.Object, actions);
+                var result = await _actionManager.PrepareActionsAsync(_ec.Object, actions);
 
                 //Assert
                 Assert.Equal(2, result.ContainerSetupSteps.Count);
