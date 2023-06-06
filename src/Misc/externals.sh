@@ -156,8 +156,6 @@ if [[ "$PACKAGERUNTIME" == "win-arm64" ]]; then
     # todo: replace these with official release when available
     acquireExternalTool "$UNOFFICIAL_NODE_URL/v${NODE16_VERSION}/$PACKAGERUNTIME/node.exe" node16/bin
     acquireExternalTool "$UNOFFICIAL_NODE_URL/v${NODE16_VERSION}/$PACKAGERUNTIME/node.lib" node16/bin
-    acquireExternalTool "$UNOFFICIAL_NODE_URL/v${NODE18_VERSION}/$PACKAGERUNTIME/node.exe" node18/bin
-    acquireExternalTool "$UNOFFICIAL_NODE_URL/v${NODE18_VERSION}/$PACKAGERUNTIME/node.lib" node18/bin
     if [[ "$PRECACHE" != "" ]]; then
         acquireExternalTool "https://github.com/microsoft/vswhere/releases/download/2.6.7/vswhere.exe" vswhere
     fi
@@ -181,10 +179,13 @@ fi
 # Download the external tools for Linux PACKAGERUNTIMEs.
 if [[ "$PACKAGERUNTIME" == "linux-x64" ]]; then
     acquireExternalTool "$NODE_URL/v${NODE12_VERSION}/node-v${NODE12_VERSION}-linux-x64.tar.gz" node12 fix_nested_dir
-    acquireExternalTool "https://vstsagenttools.blob.core.windows.net/tools/nodejs/${NODE12_VERSION}/alpine/x64/node-v${NODE12_VERSION}-alpine-x64.tar.gz" node12_alpine
+    #acquireExternalTool "https://vstsagenttools.blob.core.windows.net/tools/nodejs/${NODE12_VERSION}/alpine/x64/node-v${NODE12_VERSION}-alpine-x64.tar.gz" node12_alpine
+    acquireExternalTool "$UNOFFICIAL_NODE_URL/v${NODE12_VERSION}/node-v${NODE12_VERSION}-linux-x64-musl.tar.gz" node12_alpine
     acquireExternalTool "$NODE_URL/v${NODE16_VERSION}/node-v${NODE16_VERSION}-linux-x64.tar.gz" node16 fix_nested_dir
-    acquireExternalTool "https://vstsagenttools.blob.core.windows.net/tools/nodejs/${NODE16_VERSION}/alpine/x64/node-v${NODE16_VERSION}-alpine-x64.tar.gz" node16_alpine
+    #acquireExternalTool "https://vstsagenttools.blob.core.windows.net/tools/nodejs/${NODE16_VERSION}/alpine/x64/node-v${NODE16_VERSION}-alpine-x64.tar.gz" node16_alpine
+    acquireExternalTool "$UNOFFICIAL_NODE_URL/v${NODE16_VERSION}/node-v${NODE16_VERSION}-linux-x64-musl.tar.gz" node16_alpine
     acquireExternalTool "$NODE_URL/v${NODE18_VERSION}/node-v${NODE18_VERSION}-linux-x64.tar.gz" node18 fix_nested_dir
+    acquireExternalTool "$UNOFFICIAL_NODE_URL/v${NODE18_VERSION}/node-v${NODE18_VERSION}-linux-x64-musl.tar.gz" node18_alpine
     acquireExternalTool "https://github.com/denoland/deno/releases/download/v${DENO_VERSION}/deno-x86_64-unknown-linux-gnu.zip" deno
 fi
 
