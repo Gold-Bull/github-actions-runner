@@ -52,7 +52,7 @@ namespace GitHub.Runner.Common.Tests.Listener
                 if (response.StatusCode == System.Net.HttpStatusCode.Redirect)
                 {
                     var redirectUrl = response.Headers.Location.ToString();
-                    Regex regex = new(@"/runner/releases/tag/v(?<version>\d+\.\d+\.\d+)");
+                    Regex regex = new(@"/github-actions-runner/releases/tag/v(?<version>\d+\.\d+\.\d+)");
                     var match = regex.Match(redirectUrl);
                     if (match.Success)
                     {
