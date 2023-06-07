@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.IO;
 using System.Linq;
@@ -84,7 +84,7 @@ namespace GitHub.Services.WebApi
             if (!enumsAsNumbers)
             {
                 // Serialze enums as camelCased string values
-                this.SerializerSettings.Converters.Add(new StringEnumConverter { CamelCaseText = true });
+                this.SerializerSettings.Converters.Add(new StringEnumConverter { NamingStrategy = new CamelCaseNamingStrategy() });
             }
 
             if (useMsDateFormat)

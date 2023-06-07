@@ -43,7 +43,7 @@
   <Target Name="Build" DependsOnTargets="GenerateConstant">
     <MSBuild Targets="Restore" Projects="@(ProjectFiles)" StopOnFirstFailure="true" Properties="Configuration=$(BUILDCONFIG);PackageRuntime=$(PackageRuntime);RuntimeIdentifier=$(PackageRuntime)" />
     <MSBuild Targets="Publish" Projects="@(ProjectFiles)" BuildInParallel="false" StopOnFirstFailure="true" Properties="Configuration=$(BUILDCONFIG);PackageRuntime=$(PackageRuntime);Version=$(RunnerVersion);RuntimeIdentifier=$(PackageRuntime);PublishDir=$(MSBuildProjectDirectory)/../_layout/bin" />
-    <Exec Command="%22$(DesktopMSBuild)%22 Runner.Service/Windows/RunnerService.csproj /p:Configuration=$(BUILDCONFIG) /p:OutputPath=%22$(MSBuildProjectDirectory)/../_layout/bin%22" ConsoleToMSBuild="true" Condition="'$(PackageRuntime)' == 'win-x64' Or '$(PackageRuntime)' == 'win-x86'" />
+    <Exec Command="%22$(DesktopMSBuild)%22 Runner.Service/Windows/RunnerService.csproj /p:Configuration=$(BUILDCONFIG) /p:PackageRuntime=$(PackageRuntime) /p:OutputPath=%22$(MSBuildProjectDirectory)/../_layout/bin%22" ConsoleToMSBuild="true" Condition="'$(PackageRuntime)' == 'win-x64' Or '$(PackageRuntime)' == 'win-x86'" />
   </Target>
 
   <Target Name="Test" DependsOnTargets="GenerateConstant">
@@ -60,30 +60,30 @@
     <Copy SourceFiles="@(LayoutRootFiles)" DestinationFolder="$(MSBuildProjectDirectory)/../_layout/%(RecursiveDir)"/>
     <Copy SourceFiles="@(LayoutBinFiles)" DestinationFolder="$(MSBuildProjectDirectory)/../_layout/bin/%(RecursiveDir)"/>
 
-    <ItemGroup>
-      <LayoutRootFilesToDelete Include="$(MSBuildProjectDirectory)/../_layout/*.cmd" Condition="'$(PackageRuntime)' != 'win-x64' And '$(PackageRuntime)' != 'win-x86'"/>
-      <LayoutRootFilesToDelete Include="$(MSBuildProjectDirectory)/../_layout/*.sh" Condition="'$(PackageRuntime)' == 'win-x64' Or '$(PackageRuntime)' == 'win-x86'"/>
-      <LayoutRootFilesToDelete Include="$(MSBuildProjectDirectory)/../_layout/bin/RunnerService.js" Condition="'$(PackageRuntime)' == 'win-x64' Or '$(PackageRuntime)' == 'win-x86'"/>
-    </ItemGroup>
+        <ItemGroup>
+            <LayoutRootFilesToDelete Include="$(MSBuildProjectDirectory)/../_layout/*.cmd" Condition="'$(PackageRuntime)' != 'win-x64' And '$(PackageRuntime)' != 'win-x86' And '$(PackageRuntime)' != 'win-arm64'"/>
+            <LayoutRootFilesToDelete Include="$(MSBuildProjectDirectory)/../_layout/*.sh" Condition="'$(PackageRuntime)' == 'win-x64' Or '$(PackageRuntime)' == 'win-x86' Or '$(PackageRuntime)' == 'win-arm64'"/>
+            <LayoutRootFilesToDelete Include="$(MSBuildProjectDirectory)/../_layout/bin/RunnerService.js" Condition="'$(PackageRuntime)' == 'win-x64' Or '$(PackageRuntime)' == 'win-x86' Or '$(PackageRuntime)' == 'win-arm64'"/>
+        </ItemGroup>
 
     <Delete Files="@(LayoutRootFilesToDelete)" />
   </Target>
 
-  <Target Name="Clean">
-    <RemoveDir Directories="$(MSBuildProjectDirectory)/../_layout" ContinueOnError="WarnAndContinue" />
-    <RemoveDir Directories="Runner.Common/bin" />
-    <RemoveDir Directories="Runner.Common/obj" />
-    <RemoveDir Directories="Runner.Listener/bin" />
-    <RemoveDir Directories="Runner.Listener/obj" />
-    <RemoveDir Directories="Runner.Worker/bin" />
-    <RemoveDir Directories="Runner.Worker/obj" />
-    <RemoveDir Directories="Runner.PluginHost/bin" />
-    <RemoveDir Directories="Runner.PluginHost/obj" />
-    <RemoveDir Directories="Runner.Sdk/bin" />
-    <RemoveDir Directories="Runner.Sdk/obj" />
-    <RemoveDir Directories="Runner.Plugins/bin" />
-    <RemoveDir Directories="Runner.Plugins/obj" />
-    <RemoveDir Directories="Test/bin" />
-    <RemoveDir Directories="Test/obj" />
-  </Target>
+    <Target Name="Clean">
+        <RemoveDir Directories="$(MSBuildProjectDirectory)/../_layout" ContinueOnError="WarnAndContinue" />
+        <RemoveDir Directories="Runner.Common/bin" />
+        <RemoveDir Directories="Runner.Common/obj" />
+        <RemoveDir Directories="Runner.Listener/bin" />
+        <RemoveDir Directories="Runner.Listener/obj" />
+        <RemoveDir Directories="Runner.Worker/bin" />
+        <RemoveDir Directories="Runner.Worker/obj" />
+        <RemoveDir Directories="Runner.PluginHost/bin" />
+        <RemoveDir Directories="Runner.PluginHost/obj" />
+        <RemoveDir Directories="Runner.Sdk/bin" />
+        <RemoveDir Directories="Runner.Sdk/obj" />
+        <RemoveDir Directories="Runner.Plugins/bin" />
+        <RemoveDir Directories="Runner.Plugins/obj" />
+        <RemoveDir Directories="Test/bin" />
+        <RemoveDir Directories="Test/obj" />
+    </Target>
 </Project>

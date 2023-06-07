@@ -1,7 +1,7 @@
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;linux-s390x;osx-x64;osx-arm64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;linux-arm;linux-s390x;osx-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <PredefinedCulturesOnly>false</PredefinedCulturesOnly>
     <PublishReadyToRunComposite>true</PublishReadyToRunComposite>
@@ -31,6 +31,9 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(BUILD_OS)' == 'Windows' AND '$(PackageRuntime)' == 'win-x86'">
     <DefineConstants>$(DefineConstants);X86</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(BUILD_OS)' == 'Windows' AND '$(PackageRuntime)' == 'win-arm64'">
+    <DefineConstants>$(DefineConstants);ARM64</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(BUILD_OS)' == 'OSX' AND '$(PackageRuntime)' == 'osx-x64'">

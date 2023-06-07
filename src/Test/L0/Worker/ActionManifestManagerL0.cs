@@ -670,7 +670,7 @@ namespace GitHub.Runner.Common.Tests.Worker
             {
                 Teardown();
             }
-        }        
+        }
 
         [Fact]
         [Trait("Level", "L0")]
@@ -691,6 +691,31 @@ namespace GitHub.Runner.Common.Tests.Worker
                 //Assert
                 Assert.Equal("Conditional Composite", result.Name);
                 Assert.Equal(ActionExecutionType.Composite, result.Execution.ExecutionType);
+            }
+            finally
+            {
+                Teardown();
+            }
+        }
+
+        [Fact]
+        [Trait("Level", "L0")]
+        [Trait("Category", "Worker")]
+        public void Load_CompositeActionNoUsing()
+        {
+            try
+            {
+                //Arrange
+                Setup();
+
+                var actionManifest = new ActionManifestManager();
+                actionManifest.Initialize(_hc);
+                var action_path = Path.Combine(TestUtil.GetTestDataPath(), "composite_action_without_using_token.yml");
+
+                //Assert
+                var err = Assert.Throws<ArgumentException>(() => actionManifest.Load(_ec.Object, action_path));
+                Assert.Contains($"Fail to load {action_path}", err.Message);
+                _ec.Verify(x => x.AddIssue(It.Is<Issue>(s => s.Message.Contains("Missing 'using' value. 'using' requires 'composite', 'docker', 'node12' or 'node16'.")), It.IsAny<string>()), Times.Once);
             }
             finally
             {

@@ -1,5 +1,3 @@
-﻿using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using GitHub.Actions.Pipelines.WebApi;
@@ -38,7 +36,7 @@ namespace GitHub.Runner.Plugins.Artifact
 
             return await _pipelinesHttpClient.CreateArtifactAsync(
                 parameters,
-                pipelineId, 
+                pipelineId,
                 runId,
                 cancellationToken: cancellationToken) as Pipelines.ActionsStorageArtifact;
         }

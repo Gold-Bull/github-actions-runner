@@ -1,4 +1,4 @@
-﻿using GitHub.DistributedTask.WebApi;
+using GitHub.DistributedTask.WebApi;
 using GitHub.Runner.Common.Util;
 using Xunit;
 
@@ -12,7 +12,7 @@ namespace GitHub.Runner.Common.Tests.Util
         public void TaskResultReturnCodeTranslate()
         {
             // Arrange.
-            using (TestHostContext hc = new TestHostContext(this))
+            using (TestHostContext hc = new(this))
             {
                 // Act.
                 TaskResult abandon = TaskResultUtil.TranslateFromReturnCode(TaskResultUtil.TranslateToReturnCode(TaskResult.Abandoned));
@@ -57,7 +57,7 @@ namespace GitHub.Runner.Common.Tests.Util
         public void TaskResultsMerge()
         {
             // Arrange.
-            using (TestHostContext hc = new TestHostContext(this))
+            using (TestHostContext hc = new(this))
             {
                 TaskResult merged;
 

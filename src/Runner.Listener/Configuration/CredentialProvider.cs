@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using GitHub.Services.Common;
 using GitHub.Runner.Common;
 using GitHub.Runner.Sdk;
@@ -48,7 +48,7 @@ namespace GitHub.Runner.Listener.Configuration
             ArgUtil.NotNullOrEmpty(token, nameof(token));
 
             trace.Info("token retrieved: {0} chars", token.Length);
-            VssCredentials creds = new VssCredentials(new VssOAuthAccessTokenCredential(token), CredentialPromptType.DoNotPrompt);
+            VssCredentials creds = new(new VssOAuthAccessTokenCredential(token), CredentialPromptType.DoNotPrompt);
             trace.Info("cred created");
 
             return creds;

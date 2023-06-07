@@ -1,4 +1,4 @@
-﻿using GitHub.DistributedTask.WebApi;
+using GitHub.DistributedTask.WebApi;
 using GitHub.Runner.Worker;
 using Moq;
 using System;
@@ -8,7 +8,6 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Xunit;
 using System.Threading;
-using GitHub.DistributedTask.ObjectTemplating.Tokens;
 using Pipelines = GitHub.DistributedTask.Pipelines;
 
 namespace GitHub.Runner.Common.Tests.Worker
@@ -68,10 +67,10 @@ namespace GitHub.Runner.Common.Tests.Worker
             }
 
             _tokenSource = new CancellationTokenSource();
-            TaskOrchestrationPlanReference plan = new TaskOrchestrationPlanReference();
+            TaskOrchestrationPlanReference plan = new();
             TimelineReference timeline = new Timeline(Guid.NewGuid());
 
-            List<Pipelines.ActionStep> steps = new List<Pipelines.ActionStep>()
+            List<Pipelines.ActionStep> steps = new()
             {
                 new Pipelines.ActionStep()
                 {
@@ -102,7 +101,7 @@ namespace GitHub.Runner.Common.Tests.Worker
 
             Guid jobId = Guid.NewGuid();
             _message = new Pipelines.AgentJobRequestMessage(plan, timeline, jobId, "test", "test", null, null, null, new Dictionary<string, VariableValue>(), new List<MaskHint>(), new Pipelines.JobResources(), new Pipelines.ContextData.DictionaryContextData(), new Pipelines.WorkspaceOptions(), steps, null, null, null, null);
-            GitHubContext github = new GitHubContext();
+            GitHubContext github = new();
             github["repository"] = new Pipelines.ContextData.StringContextData("actions/runner");
             github["secret_source"] = new Pipelines.ContextData.StringContextData("Actions");
             _message.ContextData.Add("github", github);
@@ -319,7 +318,7 @@ namespace GitHub.Runner.Common.Tests.Worker
 
                 _message.ActionsEnvironment = new ActionsEnvironmentReference("production");
 
-                _jobEc = new Runner.Worker.ExecutionContext {Result = TaskResult.Succeeded};
+                _jobEc = new Runner.Worker.ExecutionContext { Result = TaskResult.Succeeded };
                 _jobEc.Initialize(hc);
                 _jobEc.InitializeJob(_message, _tokenSource.Token);
 
@@ -329,7 +328,9 @@ namespace GitHub.Runner.Common.Tests.Worker
             }
         }
 
-        [Fact] [Trait("Level", "L0")] [Trait("Category", "Worker")]
+        [Fact]
+        [Trait("Level", "L0")]
+        [Trait("Category", "Worker")]
         public void EnsureFinalizeJobHandlesNullEnvironmentUrl()
         {
             using (TestHostContext hc = CreateTestContext())
@@ -342,7 +343,7 @@ namespace GitHub.Runner.Common.Tests.Worker
                     Url = null
                 };
 
-                _jobEc = new Runner.Worker.ExecutionContext {Result = TaskResult.Succeeded};
+                _jobEc = new Runner.Worker.ExecutionContext { Result = TaskResult.Succeeded };
                 _jobEc.Initialize(hc);
                 _jobEc.InitializeJob(_message, _tokenSource.Token);
 
@@ -352,7 +353,9 @@ namespace GitHub.Runner.Common.Tests.Worker
             }
         }
 
-        [Fact] [Trait("Level", "L0")] [Trait("Category", "Worker")]
+        [Fact]
+        [Trait("Level", "L0")]
+        [Trait("Category", "Worker")]
         public void EnsureFinalizeJobHandlesNullEnvironment()
         {
             using (TestHostContext hc = CreateTestContext())
@@ -362,7 +365,7 @@ namespace GitHub.Runner.Common.Tests.Worker
 
                 _message.ActionsEnvironment = null;
 
-                _jobEc = new Runner.Worker.ExecutionContext {Result = TaskResult.Succeeded};
+                _jobEc = new Runner.Worker.ExecutionContext { Result = TaskResult.Succeeded };
                 _jobEc.Initialize(hc);
                 _jobEc.InitializeJob(_message, _tokenSource.Token);
 
@@ -381,7 +384,7 @@ namespace GitHub.Runner.Common.Tests.Worker
             Environment.SetEnvironmentVariable("ACTIONS_RUNNER_HOOK_JOB_STARTED", "/foo/bar");
             Environment.SetEnvironmentVariable("ACTIONS_RUNNER_HOOK_JOB_COMPLETED", "/bar/foo");
             using (TestHostContext hc = CreateTestContext())
-            {                
+            {
                 var jobExtension = new JobExtension();
                 jobExtension.Initialize(hc);
 
@@ -397,7 +400,7 @@ namespace GitHub.Runner.Common.Tests.Worker
                 jobExtension.FinalizeJob(_jobEc, _message, DateTime.UtcNow);
 
                 Assert.Equal(Constants.Hooks.JobStartedStepName, hookStart.DisplayName);
-                Assert.Equal(Constants.Hooks.JobCompletedStepName, (_jobEc.PostJobSteps.Last() as JobExtensionRunner).DisplayName);                
+                Assert.Equal(Constants.Hooks.JobCompletedStepName, (_jobEc.PostJobSteps.Last() as JobExtensionRunner).DisplayName);
             }
 
             Environment.SetEnvironmentVariable("ACTIONS_RUNNER_HOOK_JOB_STARTED", null);
@@ -416,7 +419,7 @@ namespace GitHub.Runner.Common.Tests.Worker
 
                 _message.ActionsEnvironment = null;
 
-                _jobEc = new Runner.Worker.ExecutionContext {Result = TaskResult.Succeeded};
+                _jobEc = new Runner.Worker.ExecutionContext { Result = TaskResult.Succeeded };
                 _jobEc.Initialize(hc);
                 _jobEc.InitializeJob(_message, _tokenSource.Token);
 

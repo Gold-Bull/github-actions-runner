@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -63,7 +63,7 @@ namespace GitHub.Runner.Plugins.Artifact
             string containerPath = actionsStorageArtifact.Name; // In actions storage artifacts, name equals the path
             long containerId = actionsStorageArtifact.ContainerId;
 
-            FileContainerServer fileContainerServer = new FileContainerServer(context.VssConnection, projectId: new Guid(), containerId, containerPath);
+            FileContainerServer fileContainerServer = new(context.VssConnection, projectId: new Guid(), containerId, containerPath);
             await fileContainerServer.DownloadFromContainerAsync(context, targetPath, token);
 
             context.Output("Artifact download finished.");

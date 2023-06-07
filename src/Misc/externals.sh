@@ -3,8 +3,11 @@ PACKAGERUNTIME=$1
 PRECACHE=$2
 
 NODE_URL=https://nodejs.org/dist
+UNOFFICIAL_NODE_URL=https://unofficial-builds.nodejs.org/download/release
 NODE12_VERSION="12.22.7"
-NODE16_VERSION="16.13.0"
+NODE16_VERSION="16.16.0"
+NODE18_VERSION="18.16.0"
+DENO_VERSION="1.34.1"
 
 get_abs_path() {
   # exploits the fact that pwd will print abs path when no args
@@ -54,12 +57,23 @@ function acquireExternalTool() {
             # Download from source to the partial file.
             echo "Downloading $download_source"
             mkdir -p "$(dirname "$download_target")" || checkRC 'mkdir'
+
+            CURL_VERSION=$(curl --version | awk 'NR==1{print $2}')
+            echo "Curl version: $CURL_VERSION"
+
             # curl -f Fail silently (no output at all) on HTTP errors (H)
             #      -k Allow connections to SSL sites without certs (H)
             #      -S Show error. With -s, make curl show errors when they occur
             #      -L Follow redirects (H)
             #      -o FILE    Write to FILE instead of stdout
-            curl -fkSL -o "$partial_target" "$download_source" 2>"${download_target}_download.log" || checkRC 'curl'
+            #      --retry 3   Retries transient errors 3 times (timeouts, 5xx)
+            if [[ "$(printf '%s\n' "7.71.0" "$CURL_VERSION" | sort -V | head -n1)" != "7.71.0" ]]; then
+                # Curl version is less than or equal to 7.71.0, skipping retry-all-errors flag
+                 curl -fkSL --retry 3 -o "$partial_target" "$download_source" 2>"${download_target}_download.log" || checkRC 'curl'
+            else
+                # Curl version is greater than 7.71.0, running curl with --retry-all-errors flag
+                 curl -fkSL --retry 3 --retry-all-errors -o "$partial_target" "$download_source" 2>"${download_target}_download.log" || checkRC 'curl'
+            fi
 
             # Move the partial file to the download target.
             mv "$partial_target" "$download_target" || checkRC 'mv'
@@ -129,6 +143,19 @@ if [[ "$PACKAGERUNTIME" == "win-x64" || "$PACKAGERUNTIME" == "win-x86" ]]; then
     acquireExternalTool "$NODE_URL/v${NODE12_VERSION}/$PACKAGERUNTIME/node.lib" node12/bin
     acquireExternalTool "$NODE_URL/v${NODE16_VERSION}/$PACKAGERUNTIME/node.exe" node16/bin
     acquireExternalTool "$NODE_URL/v${NODE16_VERSION}/$PACKAGERUNTIME/node.lib" node16/bin
+    acquireExternalTool "$NODE_URL/v${NODE18_VERSION}/$PACKAGERUNTIME/node.exe" node18/bin
+    acquireExternalTool "$NODE_URL/v${NODE18_VERSION}/$PACKAGERUNTIME/node.lib" node18/bin
+    if [[ "$PRECACHE" != "" ]]; then
+        acquireExternalTool "https://github.com/microsoft/vswhere/releases/download/2.6.7/vswhere.exe" vswhere
+    fi
+    acquireExternalTool "https://github.com/denoland/deno/releases/download/v${DENO_VERSION}/deno-x86_64-pc-windows-msvc.zip" deno
+fi
+
+# Download the external tools only for Windows.
+if [[ "$PACKAGERUNTIME" == "win-arm64" ]]; then
+    # todo: replace these with official release when available
+    acquireExternalTool "$UNOFFICIAL_NODE_URL/v${NODE16_VERSION}/$PACKAGERUNTIME/node.exe" node16/bin
+    acquireExternalTool "$UNOFFICIAL_NODE_URL/v${NODE16_VERSION}/$PACKAGERUNTIME/node.lib" node16/bin
     if [[ "$PRECACHE" != "" ]]; then
         acquireExternalTool "https://github.com/microsoft/vswhere/releases/download/2.6.7/vswhere.exe" vswhere
     fi
@@ -138,32 +165,44 @@ fi
 if [[ "$PACKAGERUNTIME" == "osx-x64" ]]; then
     acquireExternalTool "$NODE_URL/v${NODE12_VERSION}/node-v${NODE12_VERSION}-darwin-x64.tar.gz" node12 fix_nested_dir
     acquireExternalTool "$NODE_URL/v${NODE16_VERSION}/node-v${NODE16_VERSION}-darwin-x64.tar.gz" node16 fix_nested_dir
+    acquireExternalTool "$NODE_URL/v${NODE18_VERSION}/node-v${NODE18_VERSION}-darwin-x64.tar.gz" node18 fix_nested_dir
+    acquireExternalTool "https://github.com/denoland/deno/releases/download/v${DENO_VERSION}/deno-x86_64-apple-darwin.zip" deno
 fi
 
 if [[ "$PACKAGERUNTIME" == "osx-arm64" ]]; then
     # node.js v12 doesn't support macOS on arm64.
     acquireExternalTool "$NODE_URL/v${NODE16_VERSION}/node-v${NODE16_VERSION}-darwin-arm64.tar.gz" node16 fix_nested_dir
+    acquireExternalTool "$NODE_URL/v${NODE18_VERSION}/node-v${NODE18_VERSION}-darwin-arm64.tar.gz" node18 fix_nested_dir
+    acquireExternalTool "https://github.com/denoland/deno/releases/download/v${DENO_VERSION}/deno-aarch64-apple-darwin.zip" deno
 fi
 
 # Download the external tools for Linux PACKAGERUNTIMEs.
 if [[ "$PACKAGERUNTIME" == "linux-x64" ]]; then
     acquireExternalTool "$NODE_URL/v${NODE12_VERSION}/node-v${NODE12_VERSION}-linux-x64.tar.gz" node12 fix_nested_dir
-    acquireExternalTool "https://vstsagenttools.blob.core.windows.net/tools/nodejs/${NODE12_VERSION}/alpine/x64/node-v${NODE12_VERSION}-alpine-x64.tar.gz" node12_alpine
+    #acquireExternalTool "https://vstsagenttools.blob.core.windows.net/tools/nodejs/${NODE12_VERSION}/alpine/x64/node-v${NODE12_VERSION}-alpine-x64.tar.gz" node12_alpine
+    acquireExternalTool "$UNOFFICIAL_NODE_URL/v${NODE12_VERSION}/node-v${NODE12_VERSION}-linux-x64-musl.tar.gz" node12_alpine
     acquireExternalTool "$NODE_URL/v${NODE16_VERSION}/node-v${NODE16_VERSION}-linux-x64.tar.gz" node16 fix_nested_dir
-    acquireExternalTool "https://vstsagenttools.blob.core.windows.net/tools/nodejs/${NODE16_VERSION}/alpine/x64/node-v${NODE16_VERSION}-alpine-x64.tar.gz" node16_alpine
+    #acquireExternalTool "https://vstsagenttools.blob.core.windows.net/tools/nodejs/${NODE16_VERSION}/alpine/x64/node-v${NODE16_VERSION}-alpine-x64.tar.gz" node16_alpine
+    acquireExternalTool "$UNOFFICIAL_NODE_URL/v${NODE16_VERSION}/node-v${NODE16_VERSION}-linux-x64-musl.tar.gz" node16_alpine
+    acquireExternalTool "$NODE_URL/v${NODE18_VERSION}/node-v${NODE18_VERSION}-linux-x64.tar.gz" node18 fix_nested_dir
+    acquireExternalTool "$UNOFFICIAL_NODE_URL/v${NODE18_VERSION}/node-v${NODE18_VERSION}-linux-x64-musl.tar.gz" node18_alpine
+    acquireExternalTool "https://github.com/denoland/deno/releases/download/v${DENO_VERSION}/deno-x86_64-unknown-linux-gnu.zip" deno
 fi
 
 if [[ "$PACKAGERUNTIME" == "linux-arm64" ]]; then
     acquireExternalTool "$NODE_URL/v${NODE12_VERSION}/node-v${NODE12_VERSION}-linux-arm64.tar.gz" node12 fix_nested_dir
     acquireExternalTool "$NODE_URL/v${NODE16_VERSION}/node-v${NODE16_VERSION}-linux-arm64.tar.gz" node16 fix_nested_dir
+    acquireExternalTool "$NODE_URL/v${NODE18_VERSION}/node-v${NODE18_VERSION}-linux-arm64.tar.gz" node18 fix_nested_dir
 fi
 
 if [[ "$PACKAGERUNTIME" == "linux-arm" ]]; then
     acquireExternalTool "$NODE_URL/v${NODE12_VERSION}/node-v${NODE12_VERSION}-linux-armv7l.tar.gz" node12 fix_nested_dir
     acquireExternalTool "$NODE_URL/v${NODE16_VERSION}/node-v${NODE16_VERSION}-linux-armv7l.tar.gz" node16 fix_nested_dir
+    acquireExternalTool "$NODE_URL/v${NODE18_VERSION}/node-v${NODE18_VERSION}-linux-armv7l.tar.gz" node18 fix_nested_dir
 fi
 
 if [[ "$PACKAGERUNTIME" =~ .*-s390x$ ]]; then
     acquireExternalTool "$NODE_URL/v${NODE12_VERSION}/node-v${NODE12_VERSION}-linux-s390x.tar.gz" node12 fix_nested_dir
     acquireExternalTool "$NODE_URL/v${NODE16_VERSION}/node-v${NODE16_VERSION}-linux-s390x.tar.gz" node16 fix_nested_dir
+    acquireExternalTool "$NODE_URL/v${NODE18_VERSION}/node-v${NODE18_VERSION}-linux-s390x.tar.gz" node18 fix_nested_dir
 fi

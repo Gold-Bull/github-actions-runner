@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -27,7 +27,7 @@ namespace GitHub.Runner.Common.Tests.Worker
         private TestHostContext CreateTestContext([CallerMemberName] String testName = "")
         {
             var hc = new TestHostContext(this, testName);
-            Dictionary<string, VariableValue> variablesToCopy = new Dictionary<string, VariableValue>();
+            Dictionary<string, VariableValue> variablesToCopy = new();
             _variables = new Variables(
                 hostContext: hc,
                 copy: variablesToCopy);

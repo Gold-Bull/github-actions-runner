@@ -1,4 +1,4 @@
-﻿using GitHub.DistributedTask.WebApi;
+using GitHub.DistributedTask.WebApi;
 using GitHub.Runner.Common.Util;
 using Newtonsoft.Json;
 using System;
@@ -32,7 +32,7 @@ namespace GitHub.Runner.Worker
             Trace.Entering();
 
             // Create the new tracking config.
-            TrackingConfig config = new TrackingConfig(executionContext);
+            TrackingConfig config = new(executionContext);
             WriteToFile(file, config);
             return config;
         }

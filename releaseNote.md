@@ -1,12 +1,22 @@
 ## Features
-- Added support for a JIT runner config (#1925)
-- Added `ACTIONS_RUNNER_FORCE_ACTIONS_NODE_VERSION` env option to force actions to run on a specific node version (#1913)
-- Experimental: Self-hosted runner on Linux s390x Architecture
+- Runner changes for communication with Results service (#2510, #2531, #2535, #2516) 
+- Add `*.ghe.localhost` domains to hosted server check (#2536) 
+- Add `OrchestrationId` to user-agent for better telemetry correlation. (#2568) 
+
 ## Bugs
-- Fixed a bug where container hooks passed in path as a string rather then an array of strings (#1948)
+- Fix JIT configurations on Windows (#2497) 
+- Guard against NullReference while creating HostContext (#2343) 
+- Handles broken symlink in `Which` (#2150, #2196) 
+- Adding curl retry for external tool downloads (#2552, #2557) 
+- Limit the time we wait for waiting websocket to connect. (#2554) 
 
 ## Misc
-- Minor cleanup of error messages when running container hooks (#1949)
+- Bump container hooks version to 0.3.1 in runner image (#2496) 
+- Runner changes to communicate with vNext services (#2487, #2500, #2505, #2541, #2547) 
+
+_Note: Actions Runner follows a progressive release policy, so the latest release might not be available to your enterprise, organization, or repository yet. 
+To confirm which version of the Actions Runner you should expect, please view the download instructions for your enterprise, organization, or repository. 
+See https://docs.github.com/en/enterprise-cloud@latest/actions/hosting-your-own-runners/adding-self-hosted-runners_
 
 ## Windows x64
 We recommend configuring the runner in a root folder of the Windows drive (e.g. "C:\actions-runner"). This will help avoid issues related to service identity folder permissions and long file path restrictions on Windows.
@@ -22,6 +32,22 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem ;
 [System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\actions-runner-win-x64-<RUNNER_VERSION>.zip", "$PWD")
 ```
 
+## [Pre-release] Windows arm64
+**Warning:** Windows arm64 runners are currently in preview status and use [unofficial versions of nodejs](https://unofficial-builds.nodejs.org/). They are not intended for production workflows.
+
+We recommend configuring the runner in a root folder of the Windows drive (e.g. "C:\actions-runner"). This will help avoid issues related to service identity folder permissions and long file path restrictions on Windows.
+
+The following snipped needs to be run on `powershell`:
+``` powershell
+# Create a folder under the drive root
+mkdir \actions-runner ; cd \actions-runner
+# Download the latest runner package
+Invoke-WebRequest -Uri https://github.com/Gold-Bull/github-actions-runner/releases/download/v<RUNNER_VERSION>/actions-runner-win-arm64-<RUNNER_VERSION>.zip -OutFile actions-runner-win-arm64-<RUNNER_VERSION>.zip
+# Extract the installer
+Add-Type -AssemblyName System.IO.Compression.FileSystem ;
+[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\actions-runner-win-arm64-<RUNNER_VERSION>.zip", "$PWD")
+```
+
 ## OSX x64
 
 ``` bash
@@ -33,7 +59,7 @@ curl -O -L https://github.com/Gold-Bull/github-actions-runner/releases/download/
 tar xzf ./actions-runner-osx-x64-<RUNNER_VERSION>.tar.gz
 ```
 
-## [Pre-release] OSX arm64 (Apple silicon)
+## OSX arm64 (Apple silicon)
 
 ``` bash
 # Create a folder
@@ -96,6 +122,7 @@ For additional details about configuring, running, or shutting down the runner p
 The SHA-256 checksums for the packages included in this build are shown below:
 
 - actions-runner-win-x64-<RUNNER_VERSION>.zip <!-- BEGIN SHA win-x64 --><WIN_X64_SHA><!-- END SHA win-x64 -->
+- actions-runner-win-arm64-<RUNNER_VERSION>.zip <!-- BEGIN SHA win-arm64 --><WIN_ARM64_SHA><!-- END SHA win-arm64 -->
 - actions-runner-osx-x64-<RUNNER_VERSION>.tar.gz <!-- BEGIN SHA osx-x64 --><OSX_X64_SHA><!-- END SHA osx-x64 -->
 - actions-runner-osx-arm64-<RUNNER_VERSION>.tar.gz <!-- BEGIN SHA osx-arm64 --><OSX_ARM64_SHA><!-- END SHA osx-arm64 -->
 - actions-runner-linux-x64-<RUNNER_VERSION>.tar.gz <!-- BEGIN SHA linux-x64 --><LINUX_X64_SHA><!-- END SHA linux-x64 -->
@@ -104,6 +131,7 @@ The SHA-256 checksums for the packages included in this build are shown below:
 - actions-runner-linux-s390x-<RUNNER_VERSION>.tar.gz <!-- BEGIN SHA linux-s390x --><LINUX_S390X_SHA><!-- END SHA linux-s390x -->
 
 - actions-runner-win-x64-<RUNNER_VERSION>-noexternals.zip <!-- BEGIN SHA win-x64_noexternals --><WIN_X64_SHA_NOEXTERNALS><!-- END SHA win-x64_noexternals -->
+- actions-runner-win-arm64-<RUNNER_VERSION>-noexternals.zip <!-- BEGIN SHA win-arm64_noexternals --><WIN_ARM64_SHA_NOEXTERNALS><!-- END SHA win-arm64_noexternals -->
 - actions-runner-osx-x64-<RUNNER_VERSION>-noexternals.tar.gz <!-- BEGIN SHA osx-x64_noexternals --><OSX_X64_SHA_NOEXTERNALS><!-- END SHA osx-x64_noexternals -->
 - actions-runner-osx-arm64-<RUNNER_VERSION>-noexternals.tar.gz <!-- BEGIN SHA osx-arm64_noexternals --><OSX_ARM64_SHA_NOEXTERNALS><!-- END SHA osx-arm64_noexternals -->
 - actions-runner-linux-x64-<RUNNER_VERSION>-noexternals.tar.gz <!-- BEGIN SHA linux-x64_noexternals --><LINUX_X64_SHA_NOEXTERNALS><!-- END SHA linux-x64_noexternals -->
@@ -112,6 +140,7 @@ The SHA-256 checksums for the packages included in this build are shown below:
 - actions-runner-linux-s390x-<RUNNER_VERSION>-noexternals.tar.gz <!-- BEGIN SHA linux-arm_noexternals --><LINUX_S390X_SHA_NOEXTERNALS><!-- END SHA linux-arm_noexternals -->
 
 - actions-runner-win-x64-<RUNNER_VERSION>-noruntime.zip <!-- BEGIN SHA win-x64_noruntime --><WIN_X64_SHA_NORUNTIME><!-- END SHA win-x64_noruntime -->
+- actions-runner-win-arm64-<RUNNER_VERSION>-noruntime.zip <!-- BEGIN SHA win-arm64_noruntime --><WIN_ARM64_SHA_NORUNTIME><!-- END SHA win-arm64_noruntime -->
 - actions-runner-osx-x64-<RUNNER_VERSION>-noruntime.tar.gz <!-- BEGIN SHA osx-x64_noruntime --><OSX_X64_SHA_NORUNTIME><!-- END SHA osx-x64_noruntime -->
 - actions-runner-osx-arm64-<RUNNER_VERSION>-noruntime.tar.gz <!-- BEGIN SHA osx-arm64_noruntime --><OSX_ARM64_SHA_NORUNTIME><!-- END SHA osx-arm64_noruntime -->
 - actions-runner-linux-x64-<RUNNER_VERSION>-noruntime.tar.gz <!-- BEGIN SHA linux-x64_noruntime --><LINUX_X64_SHA_NORUNTIME><!-- END SHA linux-x64_noruntime -->
@@ -120,6 +149,7 @@ The SHA-256 checksums for the packages included in this build are shown below:
 - actions-runner-linux-s390x-<RUNNER_VERSION>-noruntime.tar.gz <!-- BEGIN SHA linux-arm_noruntime --><LINUX_S390X_SHA_NORUNTIME><!-- END SHA linux-arm_noruntime -->
 
 - actions-runner-win-x64-<RUNNER_VERSION>-noruntime-noexternals.zip <!-- BEGIN SHA win-x64_noruntime_noexternals --><WIN_X64_SHA_NORUNTIME_NOEXTERNALS><!-- END SHA win-x64_noruntime_noexternals -->
+- actions-runner-win-arm64-<RUNNER_VERSION>-noruntime-noexternals.zip <!-- BEGIN SHA win-arm64_noruntime_noexternals --><WIN_ARM64_SHA_NORUNTIME_NOEXTERNALS><!-- END SHA win-arm64_noruntime_noexternals -->
 - actions-runner-osx-x64-<RUNNER_VERSION>-noruntime-noexternals.tar.gz <!-- BEGIN SHA osx-x64_noruntime_noexternals --><OSX_X64_SHA_NORUNTIME_NOEXTERNALS><!-- END SHA osx-x64_noruntime_noexternals -->
 - actions-runner-osx-arm64-<RUNNER_VERSION>-noruntime-noexternals.tar.gz <!-- BEGIN SHA osx-arm64_noruntime_noexternals --><OSX_ARM64_SHA_NORUNTIME_NOEXTERNALS><!-- END SHA osx-arm64_noruntime_noexternals -->
 - actions-runner-linux-x64-<RUNNER_VERSION>-noruntime-noexternals.tar.gz <!-- BEGIN SHA linux-x64_noruntime_noexternals --><LINUX_X64_SHA_NORUNTIME_NOEXTERNALS><!-- END SHA linux-x64_noruntime_noexternals -->
