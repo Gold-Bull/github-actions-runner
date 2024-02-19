@@ -55,6 +55,17 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
+  
+    - name: Get runner version
+      id: runnerInfo
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+          const fs = require('fs');
+          const runnerVersion = fs.readFileSync('src/runnerversion', 'utf8').replace(/\n$/g, '')
+          core.setOutput('version', runnerVersion);
+          core.setOutput('package_name', `actions-runner-${{ matrix.runtime }}-${runnerVersion}${{ startsWith(matrix.runtime, 'win') && '.zip' || '.tar.gz' }}`);
 
     # Build runner layout
     - name: Build & Layout Release
@@ -82,5 +93,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: runner-package-${{ matrix.runtime }}
-        path: |
-          _package
+        path: _package/${{ steps.runnerInfo.outputs.package_name }}
