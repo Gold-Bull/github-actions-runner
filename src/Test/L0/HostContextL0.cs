@@ -1,4 +1,4 @@
-using GitHub.Runner.Common.Util;
+﻿using GitHub.Runner.Common.Util;
 using System;
 using System.IO;
 using System.Reflection;
@@ -120,6 +120,7 @@ namespace GitHub.Runner.Common.Tests
         [InlineData("secret&+secret&secret", "secret&+\x0033[96ms\x0033[0mecret&secret", "***\x0033[96ms\x0033[0m***")]
         [InlineData("secret&+secret&+secret", "secret&+\x0033[96ms\x0033[0mecret&+secret", "***\x0033[96ms\x0033[0m***")]
         [InlineData("secret&+secret&secret&+secret", "secret&+\x0033[96ms\x0033[0mecret&secret&+secret", "***\x0033[96ms\x0033[0m***")]
+        [InlineData("secret&secret&+", "secret&secret&+\x0033[96m\x0033[0m", "***\x0033[96m\x0033[0m")]
         [Trait("Level", "L0")]
         [Trait("Category", "Common")]
         public void SecretSectionMasking(string secret, string rawOutput, string maskedOutput)

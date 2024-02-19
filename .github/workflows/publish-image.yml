@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Compute image version
         id: image
@@ -53,6 +53,9 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: ./images
+          platforms: |
+            linux/amd64
+            linux/arm64
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.image.outputs.version }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Security;
 using System.Text;
@@ -123,8 +123,11 @@ namespace GitHub.DistributedTask.Logging
                 var secretSection = string.Empty;
                 if (value.Contains("&+"))
                 {
-                    // +1 to skip the letter that got colored
-                    secretSection = value.Substring(value.IndexOf("&+") + "&+".Length + 1);
+                    if (value.Length > value.IndexOf("&+") + "&+".Length + 1)
+                    {
+                        // +1 to skip the letter that got colored
+                        secretSection = value.Substring(value.IndexOf("&+") + "&+".Length + 1);
+                    }
                 }
                 else
                 {

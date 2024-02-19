@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Runtime.Serialization;
 
 namespace GitHub.DistributedTask.WebApi
@@ -71,6 +71,13 @@ namespace GitHub.DistributedTask.WebApi
         /// </summary>
         [DataMember]
         public bool UseFipsEncryption
+        {
+            get;
+            set;
+        }
+
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public BrokerMigrationMessage BrokerMigrationMessage
         {
             get;
             set;

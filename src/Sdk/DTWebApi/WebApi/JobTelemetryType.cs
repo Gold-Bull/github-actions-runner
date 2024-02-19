@@ -1,7 +1,8 @@
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 
 namespace GitHub.DistributedTask.WebApi
 {
+    // do NOT add new enum since it will break backward compatibility with GHES
     public enum JobTelemetryType
     {
         [EnumMember]
@@ -9,5 +10,8 @@ namespace GitHub.DistributedTask.WebApi
 
         [EnumMember]
         ActionCommand = 1,
+
+        [EnumMember]
+        ConnectivityCheck = 2,
     }
 }

@@ -1,4 +1,4 @@
-using GitHub.Runner.Worker;
+﻿using GitHub.Runner.Worker;
 using Moq;
 using System;
 using System.IO;
@@ -24,7 +24,7 @@ namespace GitHub.Runner.Common.Tests.Worker
             // Setup the execution context.
             _ec = new Mock<IExecutionContext>();
             GitHubContext githubContext = new();
-            _ec.Setup(x => x.GetGitHubContext("repository")).Returns("actions/runner");
+            _ec.Setup(x => x.GetGitHubContext("repository")).Returns("Gold-Bull/github-actions-runner");
 
             // Setup the tracking manager.
             _trackingManager = new TrackingManager();
@@ -49,12 +49,12 @@ namespace GitHub.Runner.Common.Tests.Worker
 
                 // Assert.
                 TrackingConfig config = _trackingManager.LoadIfExists(_ec.Object, trackingFile);
-                Assert.Equal("runner", config.PipelineDirectory);
-                Assert.Equal($"runner{Path.DirectorySeparatorChar}runner", config.WorkspaceDirectory);
-                Assert.Equal("actions/runner", config.RepositoryName);
+                Assert.Equal("github-actions-runner", config.PipelineDirectory);
+                Assert.Equal($"github-actions-runner{Path.DirectorySeparatorChar}github-actions-runner", config.WorkspaceDirectory);
+                Assert.Equal("Gold-Bull/github-actions-runner", config.RepositoryName);
 
                 Assert.Equal(1, config.Repositories.Count);
-                Assert.Equal($"runner{Path.DirectorySeparatorChar}runner", config.Repositories["actions/runner"].RepositoryPath);
+                Assert.Equal($"github-actions-runner{Path.DirectorySeparatorChar}github-actions-runner", config.Repositories["Gold-Bull/github-actions-runner"].RepositoryPath);
 
                 // Manipulate the expected seconds due to loss of granularity when the
                 // date-time-offset is serialized in a friendly format.
@@ -80,11 +80,11 @@ namespace GitHub.Runner.Common.Tests.Worker
 
                 // Assert.
                 Assert.NotNull(config);
-                Assert.Equal("actions/runner", config.RepositoryName);
-                Assert.Equal("runner", config.PipelineDirectory);
-                Assert.Equal($"runner{Path.DirectorySeparatorChar}runner", config.WorkspaceDirectory);
+                Assert.Equal("Gold-Bull/github-actions-runner", config.RepositoryName);
+                Assert.Equal("github-actions-runner", config.PipelineDirectory);
+                Assert.Equal($"github-actions-runner{Path.DirectorySeparatorChar}github-actions-runner", config.WorkspaceDirectory);
                 Assert.Equal(1, config.Repositories.Count);
-                Assert.Equal($"runner{Path.DirectorySeparatorChar}runner", config.Repositories["actions/runner"].RepositoryPath);
+                Assert.Equal($"github-actions-runner{Path.DirectorySeparatorChar}github-actions-runner", config.Repositories["Gold-Bull/github-actions-runner"].RepositoryPath);
             }
         }
 
@@ -113,7 +113,7 @@ namespace GitHub.Runner.Common.Tests.Worker
             using (TestHostContext hc = Setup())
             {
                 // Arrange.
-                TrackingConfig config = new() { RepositoryName = "actions/runner" };
+                TrackingConfig config = new() { RepositoryName = "Gold-Bull/github-actions-runner" };
                 string trackingFile = Path.Combine(_workFolder, "trackingconfig.json");
 
                 // Act.
@@ -122,7 +122,7 @@ namespace GitHub.Runner.Common.Tests.Worker
                 // Assert.
                 config = _trackingManager.LoadIfExists(_ec.Object, trackingFile);
                 Assert.NotNull(config);
-                Assert.Equal("actions/runner", config.RepositoryName);
+                Assert.Equal("Gold-Bull/github-actions-runner", config.RepositoryName);
             }
         }
     }

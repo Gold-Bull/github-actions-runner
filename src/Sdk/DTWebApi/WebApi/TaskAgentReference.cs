@@ -1,4 +1,4 @@
-using GitHub.Services.WebApi;
+﻿using GitHub.Services.WebApi;
 using System;
 using System.Runtime.Serialization;
 
@@ -37,7 +37,7 @@ namespace GitHub.DistributedTask.WebApi
         /// Identifier of the agent.
         /// </summary>
         [DataMember]
-        public Int32 Id
+        public ulong Id
         {
             get;
             set;

@@ -1,4 +1,4 @@
-using Pipelines = GitHub.DistributedTask.Pipelines;
+﻿using Pipelines = GitHub.DistributedTask.Pipelines;
 using GitHub.Runner.Worker;
 using Moq;
 using System.IO;
@@ -148,7 +148,7 @@ namespace GitHub.Runner.Common.Tests.Worker
                 _trackingManager.Setup(x => x.LoadIfExists(_ec.Object, _trackingFile)).Returns(_existingConfig);
 
                 // Act.
-                _pipelineDirectoryManager.UpdateRepositoryDirectory(_ec.Object, "actions/runner", Path.Combine(hc.GetDirectory(WellKnownDirectory.Work), _existingConfig.PipelineDirectory, "my_new_path"), true);
+                _pipelineDirectoryManager.UpdateRepositoryDirectory(_ec.Object, "Gold-Bull/github-actions-runner", Path.Combine(hc.GetDirectory(WellKnownDirectory.Work), _existingConfig.PipelineDirectory, "my_new_path"), true);
 
                 // Assert.
                 _trackingManager.Verify(x => x.LoadIfExists(_ec.Object, _trackingFile));
@@ -206,13 +206,13 @@ namespace GitHub.Runner.Common.Tests.Worker
             _ec.Setup(x => x.Global).Returns(new GlobalContext());
 
             GitHubContext githubContext = new();
-            _ec.Setup(x => x.GetGitHubContext("repository")).Returns("actions/runner");
+            _ec.Setup(x => x.GetGitHubContext("repository")).Returns("Gold-Bull/github-actions-runner");
 
             // Store the expected tracking file path.
             _trackingFile = Path.Combine(
                 hc.GetDirectory(WellKnownDirectory.Work),
                 Constants.Pipeline.Path.PipelineMappingDirectory,
-                "actions/runner",
+                "Gold-Bull/github-actions-runner",
                 Constants.Pipeline.Path.TrackingConfigFile);
 
             _workspaceOptions = new Pipelines.WorkspaceOptions();

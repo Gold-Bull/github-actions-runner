@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -32,17 +32,17 @@ namespace GitHub.Runner.Common.Tests.Worker
                                 hc.GetTrace().Info($"{tag} {line}");
                                 return 1;
                             });
-                _ec.Setup(x => x.AddIssue(It.IsAny<Issue>(), It.IsAny<string>()))
-                   .Callback((Issue issue, string message) =>
+                _ec.Setup(x => x.AddIssue(It.IsAny<Issue>(), It.IsAny<ExecutionContextLogOptions>()))
+                   .Callback((Issue issue, ExecutionContextLogOptions logOptions) =>
                    {
-                       hc.GetTrace().Info($"{issue.Type} {issue.Message} {message ?? string.Empty}");
+                       hc.GetTrace().Info($"{issue.Type} {issue.Message} {logOptions.LogMessageOverride ?? string.Empty}");
                    });
 
                 _commandManager.EnablePluginInternalCommand();
 
-                Assert.True(_commandManager.TryProcessCommand(_ec.Object, "##[internal-set-repo-path repoFullName=actions/runner;workspaceRepo=true]somepath", null));
+                Assert.True(_commandManager.TryProcessCommand(_ec.Object, "##[internal-set-repo-path repoFullName=Gold-Bull/github-actions-runner;workspaceRepo=true]somepath", null));
 
-                _pipelineDirectoryManager.Verify(x => x.UpdateRepositoryDirectory(_ec.Object, "actions/runner", "somepath", true), Times.Once);
+                _pipelineDirectoryManager.Verify(x => x.UpdateRepositoryDirectory(_ec.Object, "Gold-Bull/github-actions-runner", "somepath", true), Times.Once);
             }
         }
 
@@ -59,21 +59,21 @@ namespace GitHub.Runner.Common.Tests.Worker
                                 hc.GetTrace().Info($"{tag} {line}");
                                 return 1;
                             });
-                _ec.Setup(x => x.AddIssue(It.IsAny<Issue>(), It.IsAny<string>()))
-                   .Callback((Issue issue, string message) =>
+                _ec.Setup(x => x.AddIssue(It.IsAny<Issue>(), It.IsAny<ExecutionContextLogOptions>()))
+                   .Callback((Issue issue, ExecutionContextLogOptions logOptions) =>
                    {
-                       hc.GetTrace().Info($"{issue.Type} {issue.Message} {message ?? string.Empty}");
+                       hc.GetTrace().Info($"{issue.Type} {issue.Message} {logOptions.LogMessageOverride ?? string.Empty}");
                    });
 
                 _commandManager.EnablePluginInternalCommand();
 
-                Assert.True(_commandManager.TryProcessCommand(_ec.Object, "##[internal-set-repo-path repoFullName=actions/runner;workspaceRepo=true]somepath", null));
+                Assert.True(_commandManager.TryProcessCommand(_ec.Object, "##[internal-set-repo-path repoFullName=Gold-Bull/github-actions-runner;workspaceRepo=true]somepath", null));
 
                 _commandManager.DisablePluginInternalCommand();
 
-                Assert.False(_commandManager.TryProcessCommand(_ec.Object, "##[internal-set-repo-path repoFullName=actions/runner;workspaceRepo=true]somepath", null));
+                Assert.False(_commandManager.TryProcessCommand(_ec.Object, "##[internal-set-repo-path repoFullName=Gold-Bull/github-actions-runner;workspaceRepo=true]somepath", null));
 
-                _pipelineDirectoryManager.Verify(x => x.UpdateRepositoryDirectory(_ec.Object, "actions/runner", "somepath", true), Times.Once);
+                _pipelineDirectoryManager.Verify(x => x.UpdateRepositoryDirectory(_ec.Object, "Gold-Bull/github-actions-runner", "somepath", true), Times.Once);
             }
         }
 
@@ -92,10 +92,10 @@ namespace GitHub.Runner.Common.Tests.Worker
                                 return 1;
                             });
 
-                _ec.Setup(x => x.AddIssue(It.IsAny<Issue>(), It.IsAny<string>()))
-                   .Callback((Issue issue, string message) =>
+                _ec.Setup(x => x.AddIssue(It.IsAny<Issue>(), It.IsAny<ExecutionContextLogOptions>()))
+                   .Callback((Issue issue, ExecutionContextLogOptions logOptions) =>
                    {
-                       hc.GetTrace().Info($"{issue.Type} {issue.Message} {message ?? string.Empty}");
+                       hc.GetTrace().Info($"{issue.Type} {issue.Message} {logOptions.LogMessageOverride ?? string.Empty}");
                    });
 
                 _ec.Object.Global.EnvironmentVariables = new Dictionary<string, string>();
