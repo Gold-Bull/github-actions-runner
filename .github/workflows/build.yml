@@ -63,7 +63,7 @@ jobs:
         github-token: ${{secrets.GITHUB_TOKEN}}
         script: |
           const fs = require('fs');
-          const runnerVersion = fs.readFileSync('${{ github.workspace }}/src/runnerversion', 'utf8').replace(/\n$/g, '')
+          const runnerVersion = fs.readFileSync('src/runnerversion', 'utf8').replace(/\n$/g, '')
           core.setOutput('version', runnerVersion);
           core.setOutput('package_name', `actions-runner-${{ matrix.runtime }}-${runnerVersion}${{ startsWith(matrix.runtime, 'win') && '.zip' || '.tar.gz' }}`);
 
