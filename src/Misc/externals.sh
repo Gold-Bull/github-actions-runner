@@ -9,7 +9,6 @@ NODE16_VERSION="16.20.2"
 NODE20_VERSION="20.8.1"
 # used only for win-arm64, remove node16 unofficial version when official version is available
 NODE16_UNOFFICIAL_VERSION="16.20.0"
-DENO_VERSION="1.34.1"
 
 get_abs_path() {
   # exploits the fact that pwd will print abs path when no args
@@ -147,7 +146,6 @@ if [[ "$PACKAGERUNTIME" == "win-x64" || "$PACKAGERUNTIME" == "win-x86" ]]; then
     if [[ "$PRECACHE" != "" ]]; then
         acquireExternalTool "https://github.com/microsoft/vswhere/releases/download/2.6.7/vswhere.exe" vswhere
     fi
-    acquireExternalTool "https://github.com/denoland/deno/releases/download/v${DENO_VERSION}/deno-x86_64-pc-windows-msvc.zip" deno
 fi
 
 # Download the external tools only for Windows.
@@ -166,14 +164,12 @@ fi
 if [[ "$PACKAGERUNTIME" == "osx-x64" ]]; then
     acquireExternalTool "$NODE_URL/v${NODE16_VERSION}/node-v${NODE16_VERSION}-darwin-x64.tar.gz" node16 fix_nested_dir
     acquireExternalTool "$NODE_URL/v${NODE20_VERSION}/node-v${NODE20_VERSION}-darwin-x64.tar.gz" node20 fix_nested_dir
-    acquireExternalTool "https://github.com/denoland/deno/releases/download/v${DENO_VERSION}/deno-x86_64-apple-darwin.zip" deno
 fi
 
 if [[ "$PACKAGERUNTIME" == "osx-arm64" ]]; then
     # node.js v12 doesn't support macOS on arm64.
     acquireExternalTool "$NODE_URL/v${NODE16_VERSION}/node-v${NODE16_VERSION}-darwin-arm64.tar.gz" node16 fix_nested_dir
     acquireExternalTool "$NODE_URL/v${NODE20_VERSION}/node-v${NODE20_VERSION}-darwin-arm64.tar.gz" node20 fix_nested_dir
-    acquireExternalTool "https://github.com/denoland/deno/releases/download/v${DENO_VERSION}/deno-aarch64-apple-darwin.zip" deno
 fi
 
 # Download the external tools for Linux PACKAGERUNTIMEs.
@@ -182,7 +178,6 @@ if [[ "$PACKAGERUNTIME" == "linux-x64" ]]; then
     acquireExternalTool "$NODE_ALPINE_URL/v${NODE16_VERSION}/node-v${NODE16_VERSION}-alpine-x64.tar.gz" node16_alpine
     acquireExternalTool "$NODE_URL/v${NODE20_VERSION}/node-v${NODE20_VERSION}-linux-x64.tar.gz" node20 fix_nested_dir
     acquireExternalTool "$NODE_ALPINE_URL/v${NODE20_VERSION}/node-v${NODE20_VERSION}-alpine-x64.tar.gz" node20_alpine
-    acquireExternalTool "https://github.com/denoland/deno/releases/download/v${DENO_VERSION}/deno-x86_64-unknown-linux-gnu.zip" deno
 fi
 
 if [[ "$PACKAGERUNTIME" == "linux-arm64" ]]; then
