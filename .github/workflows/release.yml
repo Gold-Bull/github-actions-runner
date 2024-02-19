@@ -11,7 +11,7 @@ jobs:
     if: startsWith(github.ref, 'refs/heads/releases/') || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     # Make sure ./releaseVersion match ./src/runnerversion
     # Query GitHub release ensure version is not used
@@ -54,30 +54,6 @@ jobs:
       osx-x64-sha: ${{ steps.sha.outputs.osx-x64-sha256 }}
       osx-arm64-sha: ${{ steps.sha.outputs.osx-arm64-sha256 }}
       linux-s390x-sha: ${{ steps.sha.outputs.linux-s390x-sha256 }}
-      linux-x64-sha-noexternals: ${{ steps.sha_noexternals.outputs.linux-x64-sha256 }}
-      linux-arm64-sha-noexternals: ${{ steps.sha_noexternals.outputs.linux-arm64-sha256 }}
-      linux-arm-sha-noexternals: ${{ steps.sha_noexternals.outputs.linux-arm-sha256 }}
-      win-x64-sha-noexternals: ${{ steps.sha_noexternals.outputs.win-x64-sha256 }}
-      win-arm64-sha-noexternals: ${{ steps.sha_noexternals.outputs.win-arm64-sha256 }}
-      osx-x64-sha-noexternals: ${{ steps.sha_noexternals.outputs.osx-x64-sha256 }}
-      osx-arm64-sha-noexternals: ${{ steps.sha_noexternals.outputs.osx-arm64-sha256 }}
-      linux-s390x-sha-noexternals: ${{ steps.sha_noexternals.outputs.linux-s390x-sha256 }}
-      linux-x64-sha-noruntime: ${{ steps.sha_noruntime.outputs.linux-x64-sha256 }}
-      linux-arm64-sha-noruntime: ${{ steps.sha_noruntime.outputs.linux-arm64-sha256 }}
-      linux-arm-sha-noruntime: ${{ steps.sha_noruntime.outputs.linux-arm-sha256 }}
-      win-x64-sha-noruntime: ${{ steps.sha_noruntime.outputs.win-x64-sha256 }}
-      win-arm64-sha-noruntime: ${{ steps.sha_noruntime.outputs.win-arm64-sha256 }}
-      osx-x64-sha-noruntime: ${{ steps.sha_noruntime.outputs.osx-x64-sha256 }}
-      osx-arm64-sha-noruntime: ${{ steps.sha_noruntime.outputs.osx-arm64-sha256 }}
-      linux-s390x-sha-noruntime: ${{ steps.sha_noruntime.outputs.linux-s390x-sha256 }}
-      linux-x64-sha-noruntime-noexternals: ${{ steps.sha_noruntime_noexternals.outputs.linux-x64-sha256 }}
-      linux-arm64-sha-noruntime-noexternals: ${{ steps.sha_noruntime_noexternals.outputs.linux-arm64-sha256 }}
-      linux-arm-sha-noruntime-noexternals: ${{ steps.sha_noruntime_noexternals.outputs.linux-arm-sha256 }}
-      win-x64-sha-noruntime-noexternals: ${{ steps.sha_noruntime_noexternals.outputs.win-x64-sha256 }}
-      win-arm64-sha-noruntime-noexternals: ${{ steps.sha_noruntime_noexternals.outputs.win-arm64-sha256 }}
-      osx-x64-sha-noruntime-noexternals: ${{ steps.sha_noruntime_noexternals.outputs.osx-x64-sha256 }}
-      osx-arm64-sha-noruntime-noexternals: ${{ steps.sha_noruntime_noexternals.outputs.osx-arm64-sha256 }}
-      linux-s390x-sha-noruntime-noexternals: ${{ steps.sha_noruntime_noexternals.outputs.linux-s390x-sha256 }}
     strategy:
       matrix:
         runtime: [ linux-x64, linux-arm64, linux-arm, linux-s390x, win-x64, osx-x64, osx-arm64, win-arm64 ]
@@ -293,7 +269,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.createRelease.outputs.upload_url }}
-        asset_path: ${{ github.workspace }}/_package/actions-runner-linux-s390x-${{ steps.releaseNote.outputs.version }}.tar.gz
+        asset_path: ${{ github.workspace }}/actions-runner-linux-s390x-${{ steps.releaseNote.outputs.version }}.tar.gz
         asset_name: actions-runner-linux-s390x-${{ steps.releaseNote.outputs.version }}.tar.gz
         asset_content_type: application/octet-stream
 
@@ -308,7 +284,7 @@ jobs:
         IMAGE_NAME: ${{ github.repository_owner }}/actions-runner
       steps:
         - name: Checkout repository
-          uses: actions/checkout@v3
+          uses: actions/checkout@v4
       
         - name: Compute image version
           id: image

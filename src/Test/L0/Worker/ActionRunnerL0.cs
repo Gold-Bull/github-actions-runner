@@ -1,4 +1,4 @@
-using GitHub.DistributedTask.Expressions2;
+﻿using GitHub.DistributedTask.Expressions2;
 using GitHub.DistributedTask.ObjectTemplating.Tokens;
 using GitHub.DistributedTask.Pipelines;
 using GitHub.DistributedTask.Pipelines.ContextData;
@@ -335,7 +335,7 @@ namespace GitHub.Runner.Common.Tests.Worker
                 Id = actionId,
                 Reference = new Pipelines.RepositoryPathReference()
                 {
-                    Name = "actions/runner",
+                    Name = "Gold-Bull/github-actions-runner",
                     Ref = "v1"
                 },
                 Inputs = actionInputs

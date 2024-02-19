@@ -140,14 +140,14 @@ echo
 echo "Downloading latest runner ..."
 
 # For the GHES Alpha, download the runner from github.com
-latest_version_label=$(curl -s -X GET 'https://api.github.com/repos/SaileshBellamkonda/github-actions-runner/releases/latest' | jq -r '.tag_name')
+latest_version_label=$(curl -s -X GET 'https://api.github.com/repos/Gold-Bull/github-actions-runner/releases/latest' | jq -r '.tag_name')
 latest_version=$(echo ${latest_version_label:1})
 runner_file="actions-runner-${runner_plat}-${runner_arch}-${latest_version}.tar.gz"
 
 if [ -f "${runner_file}" ]; then
     echo "${runner_file} exists. skipping download."
 else
-    runner_url="https://github.com/SaileshBellamkonda/github-actions-runner/releases/download/${latest_version_label}/${runner_file}"
+    runner_url="https://github.com/Gold-Bull/github-actions-runner/releases/download/${latest_version_label}/${runner_file}"
 
     echo "Downloading ${latest_version_label} for ${runner_plat} ..."
     echo $runner_url

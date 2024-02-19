@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -40,9 +40,9 @@ namespace GitHub.Runner.Common.Tests.Worker
 
                 _commandManager.EnablePluginInternalCommand();
 
-                Assert.True(_commandManager.TryProcessCommand(_ec.Object, "##[internal-set-repo-path repoFullName=actions/runner;workspaceRepo=true]somepath", null));
+                Assert.True(_commandManager.TryProcessCommand(_ec.Object, "##[internal-set-repo-path repoFullName=Gold-Bull/github-actions-runner;workspaceRepo=true]somepath", null));
 
-                _pipelineDirectoryManager.Verify(x => x.UpdateRepositoryDirectory(_ec.Object, "actions/runner", "somepath", true), Times.Once);
+                _pipelineDirectoryManager.Verify(x => x.UpdateRepositoryDirectory(_ec.Object, "Gold-Bull/github-actions-runner", "somepath", true), Times.Once);
             }
         }
 
@@ -67,13 +67,13 @@ namespace GitHub.Runner.Common.Tests.Worker
 
                 _commandManager.EnablePluginInternalCommand();
 
-                Assert.True(_commandManager.TryProcessCommand(_ec.Object, "##[internal-set-repo-path repoFullName=actions/runner;workspaceRepo=true]somepath", null));
+                Assert.True(_commandManager.TryProcessCommand(_ec.Object, "##[internal-set-repo-path repoFullName=Gold-Bull/github-actions-runner;workspaceRepo=true]somepath", null));
 
                 _commandManager.DisablePluginInternalCommand();
 
-                Assert.False(_commandManager.TryProcessCommand(_ec.Object, "##[internal-set-repo-path repoFullName=actions/runner;workspaceRepo=true]somepath", null));
+                Assert.False(_commandManager.TryProcessCommand(_ec.Object, "##[internal-set-repo-path repoFullName=Gold-Bull/github-actions-runner;workspaceRepo=true]somepath", null));
 
-                _pipelineDirectoryManager.Verify(x => x.UpdateRepositoryDirectory(_ec.Object, "actions/runner", "somepath", true), Times.Once);
+                _pipelineDirectoryManager.Verify(x => x.UpdateRepositoryDirectory(_ec.Object, "Gold-Bull/github-actions-runner", "somepath", true), Times.Once);
             }
         }
 
