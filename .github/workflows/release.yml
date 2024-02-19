@@ -16,7 +16,7 @@ jobs:
     # Make sure ./releaseVersion match ./src/runnerversion
     # Query GitHub release ensure version is not used
     - name: Check version
-      uses: actions/github-script@0.3.0
+      uses: actions/github-script@v7
       with:
         github-token: ${{secrets.GITHUB_TOKEN}}
         script: |
@@ -92,7 +92,7 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     # Build runner layout
     - name: Build & Layout Release
@@ -125,22 +125,24 @@ jobs:
     # Since each package name is unique, so we don't need to put ${{matrix}} info into artifact name
     - name: Publish Artifact
       if: github.event_name != 'pull_request'
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: runner-packages
         path: |
           _package
 
   release:
+    permissions:
+      contents: write
     needs: build
     runs-on: ubuntu-latest
     steps:
 
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     # Download runner package tar.gz/zip produced by 'build' job
     - name: Download Artifact
-      uses: actions/download-artifact@v1
+      uses: actions/download-artifact@v4
       with:
         name: runner-packages
         path: ./
@@ -148,7 +150,7 @@ jobs:
     # Create ReleaseNote file
     - name: Create ReleaseNote
       id: releaseNote
-      uses: actions/github-script@0.3.0
+      uses: actions/github-script@v7
       with:
         github-token: ${{secrets.GITHUB_TOKEN}}
         script: |
