@@ -93,6 +93,17 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Get runner version
+      id: runnerInfo
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+          const fs = require('fs');
+          const runnerVersion = fs.readFileSync('${{ github.workspace }}/src/runnerversion', 'utf8').replace(/\n$/g, '')
+          core.setOutput('version', runnerVersion);
+          core.setOutput('package_name', `actions-runner-${{ matrix.runtime }}-${runnerVersion}${{ startsWith(matrix.runtime, 'win') && '.zip' || '.tar.gz' }}`);
+
     # Build runner layout
     - name: Build & Layout Release
       run: |
@@ -110,10 +121,10 @@ jobs:
     - run: brew install coreutils #needed for shasum util
       if: ${{ matrix.os == 'macOS-latest' }}
       name: Install Dependencies for SHA Calculation (osx)
+
     - run: |
-        file=$(ls)
-        sha=$(sha256sum $file | awk '{ print $1 }')
-        echo "Computed sha256: $sha for $file"
+        sha=$(sha256sum ${{ steps.runnerInfo.outputs.package_name }} | awk '{ print $1 }')
+        echo "Computed sha256: $sha for ${{ steps.runnerInfo.outputs.package_name }}"
         echo "${{matrix.runtime}}-sha256=$sha" >> $GITHUB_OUTPUT
       shell: bash
       id: sha
@@ -126,9 +137,8 @@ jobs:
       if: github.event_name != 'pull_request'
       uses: actions/upload-artifact@v4
       with:
-        name: runner-packages
-        path: |
-          _package
+        name: runner-package-${{ matrix.runtime }}
+        path: _package/${{ steps.runnerInfo.outputs.package_name }}
 
   release:
     permissions:
@@ -143,8 +153,9 @@ jobs:
     - name: Download Artifact
       uses: actions/download-artifact@v4
       with:
-        name: runner-packages
         path: ./
+        pattern: runner-package-*
+        merge-multiple: true
 
     # Create ReleaseNote file
     - name: Create ReleaseNote
