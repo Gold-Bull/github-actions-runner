@@ -1,4 +1,4 @@
-using GitHub.DistributedTask.WebApi;
+﻿using GitHub.DistributedTask.WebApi;
 using GitHub.DistributedTask.ObjectTemplating.Tokens;
 using GitHub.Runner.Worker;
 using Moq;
