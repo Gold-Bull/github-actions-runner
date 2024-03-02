@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -358,6 +358,32 @@ namespace GitHub.DistributedTask.Pipelines.ObjectTemplating
                     token = TemplateEvaluator.Evaluate(context, PipelineTemplateConstants.Services, token, 0, null, omitHeader: true);
                     context.Errors.Check();
                     result = PipelineTemplateConverter.ConvertToJobServiceContainers(context, token);
+                }
+                catch (Exception ex) when (!(ex is TemplateValidationException))
+                {
+                    context.Errors.Add(ex);
+                }
+
+                context.Errors.Check();
+            }
+
+            return result;
+        }
+
+        public Snapshot EvaluateJobSnapshotRequest(TemplateToken token,
+            DictionaryContextData contextData,
+            IList<IFunctionInfo> expressionFunctions)
+        {
+            var result = default(Snapshot);
+
+            if (token != null && token.Type != TokenType.Null)
+            {
+                var context = CreateContext(contextData, expressionFunctions);
+                try
+                {
+                    token = TemplateEvaluator.Evaluate(context, PipelineTemplateConstants.Snapshot, token, 0, null, omitHeader: true);
+                    context.Errors.Check();
+                    result = PipelineTemplateConverter.ConvertToJobSnapshotRequest(context, token);
                 }
                 catch (Exception ex) when (!(ex is TemplateValidationException))
                 {
